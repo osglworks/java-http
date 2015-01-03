@@ -1,16 +1,40 @@
 package org.osgl.http;
 
+import org.osgl._;
+import org.osgl.concurrent.ContextLocal;
+
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * Stores the Context Local variables
  */
 final class Current {
-    private static ThreadLocal<H.Session> _sess = new ThreadLocal<H.Session>();
-    private static ThreadLocal<H.Request> _req = new ThreadLocal<H.Request>();
-    private static ThreadLocal<H.Response> _resp = new ThreadLocal<H.Response>();
-    private static ThreadLocal<H.Flash> _flash = new ThreadLocal<H.Flash>();
+    static ContextLocal<H.Session> _sess = _.contextLocal();
+    static ContextLocal<H.Request> _req = _.contextLocal();
+    static ContextLocal<H.Response> _resp = _.contextLocal();
+    static ContextLocal<H.Flash> _flash = _.contextLocal();
+    static ContextLocal<String> _fmt = _.contextLocal();
+    static ContextLocal<Map<String, H.Cookie>> _cookies = _.contextLocal();
 
     static H.Session session() {
         return _sess.get();
+    }
+
+    static boolean cookieMapInitialized() {
+        return null != _cookies.get();
+    }
+
+    static void setCookie(String name, H.Cookie cookie) {
+        _cookies.get().put(name, cookie);
+    }
+
+    static H.Cookie getCookie(String name) {
+        return _cookies.get().get(name);
+    }
+
+    static Collection<H.Cookie> cookies() {
+        return _cookies.get().values();
     }
 
     static H.Flash flash() {
@@ -23,6 +47,10 @@ final class Current {
 
     static H.Response response() {
         return _resp.get();
+    }
+
+    static String format() {
+        return _fmt.get();
     }
 
     static void session(H.Session sess) {
@@ -41,9 +69,15 @@ final class Current {
         _flash.set(flash);
     }
 
+    static void format(String fmt) {
+        _fmt.set(fmt);
+    }
+
     static void clear() {
         _sess.remove();
         _req.remove();
         _resp.remove();
+        _fmt.remove();
+        _cookies.remove();
     }
 }

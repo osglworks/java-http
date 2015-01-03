@@ -1,22 +1,28 @@
 package org.osgl.http;
 
+import org.apache.commons.codec.Charsets;
 import org.osgl._;
 import org.osgl.cache.CacheService;
+import org.osgl.exception.NotAppliedException;
+import org.osgl.exception.UnexpectedIOException;
+import org.osgl.http.util.Path;
 import org.osgl.logging.L;
 import org.osgl.logging.Logger;
 import org.osgl.util.*;
+import org.osgl.web.util.UserAgent;
 
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.osgl.http.H.Header.Names.*;
 
 /**
- * The namespace to access Http features
+ * The namespace to access Http features.
+ * Alias of {@link org.osgl.http.Http}
  */
 public class H {
 
@@ -51,6 +57,10 @@ public class H {
          */
         public boolean unsafe() {
             return unsafeMethods.contains(this);
+        }
+
+        public static Method valueOfIgnoreCase(String method) {
+            return valueOf(method.toUpperCase());
         }
     } // eof Method
 
@@ -589,6 +599,10 @@ public class H {
              */
             public static final String CONTENT_BASE = "content-base";
             /**
+             * {@code "Content-Disposition"}
+             */
+            public static final String CONTENT_DISPOSITION = "content-disposition";
+            /**
              * {@code "Content-Encoding"}
              */
             public static final String CONTENT_ENCODING = "content-encoding";
@@ -645,6 +659,10 @@ public class H {
              */
             public static final String FROM = "from";
             /**
+             * {@code "Front-End-Https"}
+             */
+            public static final String FRONT_END_HTTPS = "front-end-https";
+            /**
              * {@code "Host"}
              */
             public static final String HOST = "host";
@@ -696,6 +714,10 @@ public class H {
              * {@code "Proxy-Authorization"}
              */
             public static final String PROXY_AUTHORIZATION = "proxy-authorization";
+            /**
+             * {@code "Proxy-Connection"}
+             */
+            public static final String PROXY_CONNECTION = "proxy_connection";
             /**
              * {@code "Range"}
              */
@@ -802,9 +824,37 @@ public class H {
             public static final String WWW_AUTHENTICATE = "www-authenticate";
 
             /**
-             * {@code X_Requested_With}
+             * {@code "X_Requested_With"}
              */
             public static final String X_REQUESTED_WITH = "x-requested-with";
+
+            /**
+             * {@code "X-Forwarded-Host"}
+             */
+            public static final String X_FORWARDED_HOST = "x-forwarded-host";
+
+            /**
+             * {@code "X_Forwared_For"}
+             */
+            public static final String X_FORWARDED_FOR = "x-forwarded-for";
+
+            /**
+             * {@code "X_Forwared_Proto"}
+             */
+            public static final String X_FORWARDED_PROTO = "x-forwarded-proto";
+            /**
+             * {@code "X-Forwarded-Ssl"}
+             */
+            public static final String X_FORWARDED_SSL = "x-forwarded-ssl";
+
+            /**
+             * {@code "X-Http-Method-Override"}
+             */
+            public static final String X_HTTP_METHOD_OVERRIDE = "x-http-method-override";
+            /**
+             * {@code "X-Url-Scheme"}
+             */
+            public static final String X_URL_SCHEME = "x-url-scheme";
 
             private Names() {
                 super();
@@ -946,6 +996,23 @@ public class H {
             public String toContentType() {
                 return "text/plain";
             }
+        },
+
+        unknown {
+            @Override
+            public String toContentType() {
+                String s = Current.format();
+                if (!S.empty(s)) {
+                    return toContentType(s);
+                }
+                return "text/html";
+            }
+
+            @Override
+            public String toString() {
+                String s = Current.format();
+                return null == s ? name() : s;
+            }
         };
 
         /**
@@ -954,6 +1021,40 @@ public class H {
          * @return the content type string of this format
          */
         public abstract String toContentType();
+
+        private static volatile Properties types;
+
+        public static String toContentType(String fmt) {
+            if (null == types) {
+                synchronized (Format.class) {
+                    if (null == types) {
+                        try {
+                            InputStream is = H.class.getResourceAsStream("mime-types.properties");
+                            types = new Properties();
+                            types.load(is);
+                        } catch (IOException e) {
+                            throw E.ioException(e);
+                        }
+                    }
+                }
+            }
+            return types.getProperty(fmt, "text/html");
+        }
+
+        public static Format of(String fmt) {
+            return valueOfIgnoreCase(fmt);
+        }
+
+        public static Format valueOfIgnoreCase(String fmt) {
+            fmt = fmt.toLowerCase();
+            if (fmt.startsWith(".")) fmt = S.afterLast(fmt, ".");
+            try {
+                return valueOf(fmt);
+            } catch (Exception e) {
+                Current.format(fmt);
+                return unknown;
+            }
+        }
 
         /**
          * Returns the error message
@@ -972,7 +1073,11 @@ public class H {
          * @return an {@code Format} instance
          */
         public static Format resolve(String accept) {
-            return resolve_(Format.html, accept);
+            return resolve_(Format.unknown, accept);
+        }
+
+        public static String fmtToContentType(String fmt) {
+            return unknown.toContentType(fmt);
         }
 
         public static Format resolve(Format def, String accept) {
@@ -1039,29 +1144,58 @@ public class H {
     } // eof Format
 
     /**
-     * Defines the HTTP cookie trait
-     *
-     * @param <T> the type of the implementation class
+     * The HTTP cookie
      */
-    public static interface Cookie<T extends Cookie> {
+    public static class Cookie {
 
-        /**
-         * Returns the class of the Cookie implementation.
-         * Only used for Java generic typing. Do not use
-         * in your application
-         */
-        Class<T> _impl();
+        private String name;
+
+        // default is non-persistent cookie
+        private long maxAge = -1;
+
+        private boolean secure;
+
+        private String path;
+
+        private String domain;
+
+        private String value;
+
+        private boolean httpOnly;
+
+        public Cookie(String name) {
+            this(name, "");
+        }
+
+        public Cookie(String name, String value) {
+            E.NPE(name);
+            this.name = name;
+            this.value = null == value ? "" : value;
+        }
+
+        public Cookie(String name, String value, long maxAge, boolean secure, String path, String domain, boolean httpOnly) {
+            this(name, value);
+            this.maxAge = maxAge;
+            this.secure = secure;
+            this.path = path;
+            this.domain = domain;
+            this.httpOnly = httpOnly;
+        }
 
         /**
          * Returns the name of the cookie. Cookie name
          * cannot be changed after created
          */
-        String name();
+        public String name() {
+            return name;
+        }
 
         /**
          * Returns the value of the cookie
          */
-        String value();
+        public String value() {
+            return value;
+        }
 
         /**
          * Set a value to a cookie and the return {@code this} cookie
@@ -1069,12 +1203,17 @@ public class H {
          * @param value the value to be set to the cookie
          * @return this cookie
          */
-        T value(String value);
+        public Cookie value(String value) {
+            this.value = value;
+            return this;
+        }
 
         /**
          * Returns the domain of the cookie
          */
-        String domain();
+        public String domain() {
+            return domain;
+        }
 
         /**
          * Set the domain of the cookie
@@ -1082,7 +1221,10 @@ public class H {
          * @param domain the  domain string
          * @return this cookie
          */
-        T domain(String domain);
+        public Cookie domain(String domain) {
+            this.domain = domain;
+            return this;
+        }
 
         /**
          * Returns the path on the server
@@ -1091,7 +1233,9 @@ public class H {
          *
          * @see #path(String)
          */
-        String path();
+        public String path() {
+            return path;
+        }
 
         /**
          * Specifies a path for the cookie
@@ -1107,21 +1251,37 @@ public class H {
          * @return this cookie after path is set
          * @see #path
          */
-        T path(String uri);
+        public Cookie path(String uri) {
+            this.path = uri;
+            return this;
+        }
 
         /**
          * Returns the maximum age of cookie specified in seconds. If
          * maxAge is set to {@code -1} then the cookie will persist until
          * browser shutdown
          */
-        int maxAge();
+        public long maxAge() {
+            return maxAge;
+        }
 
         /**
          * Set the max age of the cookie in seconds.
+         * <p>A positive value indicates that the cookie will expire
+         * after that many seconds have passed. Note that the value is
+         * the <i>maximum</i> age when the cookie will expire, not the cookie's
+         * current age.
          *
+         * <p>A negative value means
+         * that the cookie is not stored persistently and will be deleted
+         * when the Web browser exits. A zero value causes the cookie
+         * to be deleted.
          * @see #maxAge()
          */
-        T maxAge(int maxAge);
+        public Cookie maxAge(int maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
 
         /**
          * Returns <code>true</code> if the browser is sending cookies
@@ -1130,7 +1290,9 @@ public class H {
          *
          * @see #secure(boolean)
          */
-        boolean secure();
+        public boolean secure() {
+            return secure;
+        }
 
         /**
          * Indicates to the browser whether the cookie should only be sent
@@ -1141,7 +1303,65 @@ public class H {
          * @param secure the cookie secure requirement
          * @return this cookie instance
          */
-        T secure(boolean secure);
+        public Cookie secure(boolean secure) {
+            this.secure = secure;
+            return this;
+        }
+
+        public boolean httpOnly() {
+            return httpOnly;
+        }
+
+        private static void ensureInit() {
+            if (!Current.cookieMapInitialized()) {
+                Request req = Request.current();
+                E.illegalStateIf(null == req);
+                req._initCookieMap();
+            }
+        }
+
+        /**
+         * Add a cookie to the current context
+         *
+         * @param cookie
+         */
+        public static void set(Cookie cookie) {
+            ensureInit();
+            Current.setCookie(cookie.name(), cookie);
+        }
+
+        /**
+         * Get a cookie from current context by name
+         *
+         * @param name
+         * @return a cookie with the name specified
+         */
+        public static Cookie get(String name) {
+            ensureInit();
+            return Current.getCookie(name);
+        }
+
+        /**
+         * Returns all cookies from current context
+         */
+        public static Collection<Cookie> all() {
+            ensureInit();
+            return Current.cookies();
+        }
+
+        /**
+         * The function object namespace
+         */
+        public static enum F {
+            ;
+            public static final _.F2<Cookie, Response, Void> ADD_TO_RESPONSE = new _.F2<Cookie, Response, Void>() {
+                @Override
+                public Void apply(Cookie cookie, Response response) throws NotAppliedException, _.Break {
+                    response.addCookie(cookie);
+                    return null;
+                }
+            };
+        }
 
     } // eof Cookie
 
@@ -1176,6 +1396,10 @@ public class H {
 
         private void change() {
             dirty = true;
+        }
+
+        public boolean changed() {
+            return !dirty;
         }
 
         /**
@@ -1277,12 +1501,46 @@ public class H {
          * does not contain anything else than the timestamp
          */
         public boolean empty() {
-            for (String key : data.keySet()) {
-                if (!TS_KEY.equals(key)) {
-                    return false;
-                }
-            }
-            return true;
+            return data.isEmpty() || (data.containsKey(TS_KEY) && data.size() == 1);
+        }
+
+        /**
+         * Check if the session is expired. A session is considered
+         * to be expired if it has a timestamp and the timestamp is
+         * non negative number and is less than {@link System#currentTimeMillis()}
+         *
+         * @return {@code true} if the session is expired
+         */
+        public boolean expired() {
+            long expiry = expiry();
+            if (expiry < 0) return false;
+            return (expiry < System.currentTimeMillis());
+        }
+
+        /**
+         * Returns the expiration time in milliseconds of this session. If
+         * there is no expiration set up, then this method return {@code -1}
+         * @return the difference, measured in milliseconds, between
+         *         the expiry of the session and midnight, January 1,
+         *         1970 UTC, or {@code -1} if the session has no
+         *         expiry
+         */
+        public long expiry() {
+            String s = data.get(TS_KEY);
+            if (S.empty(s)) return -1;
+            return Long.parseLong(s);
+        }
+
+        /**
+         * Set session expiry in milliseconds
+         *
+         * @param expiry the difference, measured in milliseconds, between
+         *               the expiry and midnight, January 1, 1970 UTC.
+         * @return the session instance
+         */
+        public Session expireOn(long expiry) {
+            data.put(TS_KEY, S.string(expiry));
+            return this;
         }
 
         /**
@@ -1313,7 +1571,7 @@ public class H {
             if (null != cs) return cs;
             synchronized (H.class) {
                 if (null == cs) {
-                    cs = Config.cacheService();
+                    cs = HttpConfig.cacheService();
                 }
                 return cs;
             }
@@ -1398,6 +1656,7 @@ public class H {
 
         /**
          * Evict an object from cache
+         *
          * @param key the key to cache the object
          * @return this session instance
          */
@@ -1413,8 +1672,8 @@ public class H {
          * @param key the key to get the cached object
          * @param <T> the object type
          * @return the object in the cache, or {@code null}
-         *         if it cannot find the object by key
-         *         specified
+         * if it cannot find the object by key
+         * specified
          * @see #cache(String, Object)
          */
         public <T> T cached(String key) {
@@ -1428,10 +1687,9 @@ public class H {
          * @param key the key to get the cached object
          * @param clz the class to specify the return type
          * @param <T> the object type
-         *
          * @return the object in the cache, or {@code null}
-         *         if it cannot find the object by key
-         *         specified
+         * if it cannot find the object by key
+         * specified
          * @see #cache(String, Object)
          */
         public <T> T cached(String key, Class<T> clz) {
@@ -1442,6 +1700,7 @@ public class H {
         /**
          * Return a session instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
+         *
          * @return the current session instance
          */
         public static Session current() {
@@ -1451,12 +1710,97 @@ public class H {
         /**
          * Set a session instance into the current execution context,
          * for example into a {@link java.lang.ThreadLocal}
+         *
          * @param session the session to be set to current execution context
          */
         public static void current(Session session) {
             Current.session(session);
         }
 
+        // used to parse session data persisted in the cookie value
+        private static final Pattern _PARSER = Pattern.compile(S.HSEP + "([^:]*):([^" + S.HSEP + "]*)" + S.HSEP);
+
+        /**
+         * Resolve a Session instance from a session cookie
+         *
+         * @param sessionCookie the cookie corresponding to a session
+         * @param ttl           session time to live in seconds
+         * @return a Session instance
+         * @see #serialize(String)
+         */
+        public static Session resolve(Cookie sessionCookie, int ttl) {
+            H.Session session = new H.Session();
+            long expiration = System.currentTimeMillis() + ttl * 1000;
+            boolean hasTtl = ttl > -1;
+            String value = null == sessionCookie ? null : sessionCookie.value();
+            if (S.empty(value)) {
+                if (hasTtl) {
+                    session.expireOn(expiration);
+                }
+            } else {
+                int firstDashIndex = value.indexOf("-");
+                if (firstDashIndex > -1) {
+                    String signature = value.substring(0, firstDashIndex);
+                    String data = value.substring(firstDashIndex + 1);
+                    if (S.eq(signature, sign(data))) {
+                        String sessionData = Codec.decodeUrl(data, Charsets.UTF_8);
+                        Matcher matcher = _PARSER.matcher(sessionData);
+                        while (matcher.find()) {
+                            session.put(matcher.group(1), matcher.group(2));
+                        }
+                    }
+                }
+                if (hasTtl && session.expired()) {
+                    session = new H.Session().expireOn(expiration);
+                }
+            }
+            return session;
+        }
+
+        /**
+         * Serialize this session into a cookie. Note the cookie
+         * returned has only name, value maxAge been set. It's up
+         * to the caller to set the secure, httpOnly and path
+         * attributes
+         *
+         * @param sessionKey the cookie name for the session cookie
+         * @return a cookie captures this session's information or {@code null} if
+         * this session is empty or this session hasn't been changed and
+         * there is no expiry
+         * @see #resolve(org.osgl.http.H.Cookie, int)
+         */
+        public Cookie serialize(String sessionKey) {
+            long expiry = expiry();
+            boolean hasTtl = expiry > -1;
+            boolean expired = !hasTtl && expiry < System.currentTimeMillis();
+            if (!changed() && !hasTtl) return null;
+            if (empty() || expired) {
+                // empty session, delete the session cookie
+                return new H.Cookie(sessionKey).maxAge(0);
+            }
+            StringBuilder sb = S.builder();
+            for (String k : data.keySet()) {
+                sb.append(S.HSEP);
+                sb.append(k);
+                sb.append(":");
+                sb.append(data.get(k));
+                sb.append(S.HSEP);
+            }
+            String data = Codec.encodeUrl(sb.toString(), Charsets.UTF_8);
+            String sign = sign(data);
+            String value = S.builder(sign).append("-").append(data).toString();
+            Cookie cookie = new Cookie(sessionKey).value(value);
+
+            if (expiry > -1L) {
+                int ttl = (int)((expiry - System.currentTimeMillis()) / 1000);
+                cookie.maxAge(ttl);
+            }
+            return cookie;
+        }
+
+        private static String sign(String s) {
+            return Crypto.sign(s, s.getBytes(Charsets.UTF_8));
+        }
 
     } // eof Session
 
@@ -1465,7 +1809,7 @@ public class H {
      * for one session interaction. This feature of flash makes it very good
      * for server to pass one time information to client, e.g. form submission
      * error message etc.
-     *
+     * <p/>
      * <p>Like {@link org.osgl.http.H.Session}, you can store only String type
      * information to flash, and the total number of information stored
      * including keys and values shall not exceed 4096 bytes as flash is
@@ -1475,14 +1819,16 @@ public class H {
 
         private Map<String, String> data = new HashMap<String, String>();
         private Map<String, String> out = new HashMap<String, String>();
-        private static Pattern flashParser = Pattern.compile("\u0000([^:]*):([^\u0000]*)\u0000");
+
+        // used to parse flash data persisted in the cookie value
+        private static final Pattern _PARSER = Session._PARSER;
 
 
         /**
          * Add an attribute to the flash scope. The data is
          * added to both data buffer and the out buffer
          *
-         * @param key the key to index the attribute
+         * @param key   the key to index the attribute
          * @param value the value of the attribute
          * @return the flash instance
          */
@@ -1497,19 +1843,20 @@ public class H {
          * Add an attribute to the flash scope. The value is in Object
          * type, however it will be convert to its {@link Object#toString() string
          * representation} before put into the flash
-         * @param key the key to index the attribute
+         *
+         * @param key   the key to index the attribute
          * @param value the value to be put into the flash
          * @return this flash instance
          */
         public Flash put(String key, Object value) {
-            return put(key, null == value ? (String)null : value.toString());
+            return put(key, null == value ? (String) null : value.toString());
         }
 
         /**
          * Add an attribute to the flash's current scope. Meaning when next time
          * the user request to the server, the attribute will not be there anymore.
          *
-         * @param key the attribute key
+         * @param key   the attribute key
          * @param value the attribute value
          * @return the flash instance
          */
@@ -1524,9 +1871,10 @@ public class H {
         /**
          * Check if the data buffer contains a flash data
          * identified by the key specified
+         *
          * @param key the key to identify the flash data
          * @return {@code true} if the flash data contains
-         *         the data specified by key
+         * the data specified by key
          */
         public boolean contains(String key) {
             return data.containsKey(key);
@@ -1588,7 +1936,7 @@ public class H {
          * optional format arguments
          *
          * @param message the message template
-         * @param args the format arguments
+         * @param args    the format arguments
          * @return this flash instance
          */
         public Flash error(String message, Object... args) {
@@ -1598,8 +1946,9 @@ public class H {
         /**
          * Get the "error" message that has been added to
          * the flash scope.
+         *
          * @return the "error" message or {@code null} if
-         *         no error message has been added to the flash
+         * no error message has been added to the flash
          */
         public String error() {
             return get("error");
@@ -1621,7 +1970,7 @@ public class H {
          * optional format arguments
          *
          * @param message the message template
-         * @param args the format arguments
+         * @param args    the format arguments
          * @return this flash instance
          */
         public Flash success(String message, Object... args) {
@@ -1631,8 +1980,9 @@ public class H {
         /**
          * Get the "success" message that has been added to
          * the flash scope.
+         *
          * @return the "success" message or {@code null} if
-         *         no success message has been added to the flash
+         * no success message has been added to the flash
          */
         public String success() {
             return get("success");
@@ -1712,6 +2062,7 @@ public class H {
         /**
          * Return a flash instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
+         *
          * @return the current flash instance
          */
         public static Flash current() {
@@ -1721,10 +2072,59 @@ public class H {
         /**
          * Set a flash instance into the current execution context,
          * for example into a {@link java.lang.ThreadLocal}
+         *
          * @param flash the flash to be set to current execution context
          */
         public static void current(Flash flash) {
             Current.flash(flash);
+        }
+
+        /**
+         * Resolve a Flash instance from a cookie. If the cookie supplied
+         * is {@code null} then an empty Flash instance is returned
+         * @param flashCookie the flash cookie
+         * @return a Flash instance
+         * @see #serialize(String)
+         */
+        public static Flash resolve(Cookie flashCookie) {
+            Flash flash = new Flash();
+            if (null != flashCookie) {
+                String value = flashCookie.value();
+                if (S.notEmpty(value)) {
+                    String s = Codec.decodeUrl(value, Charsets.UTF_8);
+                    Matcher m = _PARSER.matcher(s);
+                    while (m.find()) {
+                        flash.data.put(m.group(1), m.group(2));
+                    }
+                }
+            }
+            return flash;
+        }
+
+        /**
+         * Serialize this Flash instance into a Cookie. Note
+         * the cookie returned has only name, value and max Age
+         * been set. It's up to the caller to set secure, path
+         * and httpOnly attributes.
+         *
+         * @param flashKey the cookie name
+         * @return a Cookie represent this flash instance
+         * @see #resolve(org.osgl.http.H.Cookie)
+         */
+        public Cookie serialize(String flashKey) {
+            if (out.isEmpty()) {
+                return new Cookie(flashKey).maxAge(0);
+            }
+            StringBuilder sb = S.builder();
+            for (String key : out.keySet()) {
+                sb.append(S.HSEP);
+                sb.append(key);
+                sb.append(":");
+                sb.append(out.get(key));
+                sb.append(S.HSEP);
+            }
+            String value = Codec.encodeUrl(sb.toString(), Charsets.UTF_8);
+            return new Cookie(flashKey).value(value);
         }
 
     } // eof Flash
@@ -1736,18 +2136,30 @@ public class H {
      */
     public static abstract class Request<T extends Request> {
 
+        private static SimpleDateFormat dateFormat;
+        static {
+            dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        }
+
+
         /**
          * Returns the class of the implementation. Not to be used
          * by application
          */
         protected abstract Class<T> _impl();
 
-        private static SimpleDateFormat dateFormat; static {
-            dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        }
+        private List<String> pathTokens;
+
+        private Map<String, String> params;
 
         private Format fmt;
+
+        private String contentType;
+
+        private String xRmtAddr;
+
+        private int port = -1;
 
         /**
          * Returns the HTTP method of the request
@@ -1759,7 +2171,7 @@ public class H {
          * multiple headers with the same name, then the first
          * one is returned. If there is no header has the name
          * then {@code null} is returned
-         *
+         * <p/>
          * <p>Note header name is case insensitive</p>
          *
          * @param name the name of the header
@@ -1773,7 +2185,7 @@ public class H {
          * an {@link java.lang.Iterable} of {@code String}. If there
          * is no header has the name specified, then an empty iterable
          * is returned.
-         *
+         * <p/>
          * <p>Note header name is case insensitive</p>
          *
          * @param name the name of the header
@@ -1795,6 +2207,7 @@ public class H {
 
         /**
          * Check if the request is an ajax call
+         *
          * @return {@code true} if it is an ajax call
          */
         public boolean isAjax() {
@@ -1806,40 +2219,54 @@ public class H {
          * context path. The path is a composite of
          * {@link javax.servlet.http.HttpServletRequest#getServletPath()}
          * and {@link javax.servlet.http.HttpServletRequest#getPathInfo()}
+         * <p/>
+         * <p>
+         * The path starts with "/" but not end with "/"
+         * </p>
          */
         public abstract String path();
 
         /**
          * Returns the context path of the request.
+         * The context path starts with "/" but not end
+         * with "/". If there is no context path
+         * then and empty "" is returned
          */
         public abstract String contextPath();
 
         /**
          * Returns the full URI path. It's composed of
          * {@link #contextPath()} and {@link #path()}
+         * The full path starts with "/"
          */
         public String fullPath() {
-            String cp = contextPath();
-            String p = path();
-            if (S.empty(cp)) return p;
-            if (S.empty(p)) return p;
-            boolean hasEndSlash = cp.endsWith("/");
-            boolean hasLeadingSlash = p.startsWith("/");
-            StringBuilder sb = S.builder(cp);
-            if (hasEndSlash) {
-                if (hasLeadingSlash) {
-                    sb.append(p.substring(1));
-                } else {
-                    sb.append(p);
-                }
-            } else {
-                if (hasLeadingSlash) {
-                    sb.append(p);
-                } else {
-                    sb.append("/").append(p);
-                }
+            return Path.url(path(), this);
+        }
+
+        /**
+         * Alias of {@link #fullPath()}
+         *
+         * @return the full URL path of the request
+         */
+        public String url() {
+            return fullPath();
+        }
+
+        /**
+         * Returns the full URL including scheme, domain, port and
+         * full request path plus query string
+         *
+         * @return the absolute URL
+         */
+        public String fullUrl() {
+            return Path.fullUrl(path(), this);
+        }
+
+        public List<String> pathTokens() {
+            if (null == pathTokens) {
+                parsePathTokens();
             }
-            return sb.toString();
+            return pathTokens;
         }
 
         /**
@@ -1865,65 +2292,133 @@ public class H {
             return secure() ? "https" : "http";
         }
 
-        private String domain;
-
-        private void parseHost() {
-            String host = header("host");
-            port = secure() ? 80 : 443;
-            if (null == host) {
-                domain = "";
-            } else {
-                if (host.contains(":")) {
-                    domain = S.before(host, ":");
-                    try {
-                        port = Integer.parseInt(S.after(host, ":"));
-                    } catch (NumberFormatException e) {
-                        logger.error(e, "Error parsing port number: %s", S.after(host, ":"));
-                    }
-                } else {
-                    domain = host;
-                }
-            }
+        protected void _setCookie(String name, Cookie cookie) {
+            Current.setCookie(name, cookie);
         }
+
+        private String domain;
 
         /**
          * Returns the domain of the request
          */
         public String domain() {
-            if (null == domain) parseHost();
+            if (null == domain) resolveXForwarded();
             return domain;
         }
 
-        private int port = -1;
         /**
          * Returns the port
          */
         public int port() {
-            if (-1 == port) parseHost();
+            if (-1 == port) resolveXForwarded();
             return port;
         }
+
+        /**
+         * Returns remote ip address
+         */
+        protected abstract String _remoteAddr();
+
+        private void resolveXForwarded() {
+            // remoteAddress
+            String rmt = _remoteAddr();
+            if (!HttpConfig.isXForwardedAllowed(rmt)) {
+                xRmtAddr = rmt;
+            }
+            String s = header(X_FORWARDED_FOR);
+            xRmtAddr = S.empty(s) ? rmt : s;
+
+            // host and port
+            String host = header(X_FORWARDED_HOST);
+            if (S.empty(host)) {
+                host = header(HOST);
+            }
+            if (null != host) {
+                FastStr fs = FastStr.unsafeOf(host);
+                if (fs.contains(':')) {
+                    domain = fs.beforeFirst(':').toString();
+                    try {
+                        port = Integer.parseInt(fs.afterFirst(':').toString());
+                    } catch (NumberFormatException e) {
+                        port = defPort();
+                        logger.error(e, "Error parsing port number: %s", S.after(host, ":"));
+                    }
+                } else {
+                    domain = host;
+                    port = defPort();
+                }
+            } else {
+                domain = "";
+                port = defPort();
+            }
+        }
+
+        private int defPort() {
+            return secure() ? 80 : 443;
+        }
+
+        public String remoteAddr() {
+            if (null == xRmtAddr) {
+                resolveXForwarded();
+            }
+            return xRmtAddr;
+        }
+
+        public String userAgentStr() {
+            return header(USER_AGENT);
+        }
+
+        public UserAgent userAgent() {
+            return UserAgent.parse(userAgentStr());
+        }
+
+        protected abstract void _initCookieMap();
+
+        /**
+         * Returns cookie by it's name
+         *
+         * @param name the cookie name
+         * @return the cookie or {@code null} if not found
+         */
+        public H.Cookie cookie(String name) {
+            if (!Current.cookieMapInitialized()) {
+                _initCookieMap();
+            }
+            return Current.getCookie(name);
+        }
+
+        /**
+         * Returns all cookies of the request in Iterable
+         */
+        public Iterable<H.Cookie> cookies() {
+            if (!Current.cookieMapInitialized()) {
+                _initCookieMap();
+            }
+            return Current.cookies();
+        }
+
 
         /**
          * resolve the request format
          *
          * @return this request instance
          */
-        public Request resolveFormat() {
+        private T resolveFormat() {
             String accept = header(ACCEPT);
             fmt = Format.resolve(accept);
-            return this;
+            return (T) this;
         }
 
         /**
          * Check if the requested resource is modified with etag and
          * last timestamp (usually the timestamp of a static file e.g.)
          *
-         * @param etag the etag to compare with "If_None_Match"
-         *             header in browser
+         * @param etag  the etag to compare with "If_None_Match"
+         *              header in browser
          * @param since the last timestamp to compare with
-         *            "If_Modified_Since" header in browser
+         *              "If_Modified_Since" header in browser
          * @return {@code true} if the resource has changed
-         *            or {@code false} otherwise
+         * or {@code false} otherwise
          */
         public boolean isModified(String etag, long since) {
             String browserEtag = header(IF_NONE_MATCH);
@@ -1955,9 +2450,9 @@ public class H {
                 String _contentType = contentTypeParts[0].trim().toLowerCase();
                 String _encoding = null;
                 // check for encoding-info
-                if( contentTypeParts.length >= 2 ) {
+                if (contentTypeParts.length >= 2) {
                     String[] encodingInfoParts = contentTypeParts[1].split(("="));
-                    if( encodingInfoParts.length == 2 && encodingInfoParts[0].trim().equalsIgnoreCase("charset")) {
+                    if (encodingInfoParts.length == 2 && encodingInfoParts[0].trim().equalsIgnoreCase("charset")) {
                         // encoding-info was found in request
                         _encoding = encodingInfoParts[1].trim();
 
@@ -1974,8 +2469,9 @@ public class H {
             }
         }
 
-        private String contentType;
-
+        /**
+         * Return content type of the request
+         */
         public String contentType() {
             if (null == contentType) {
                 parseContentTypeAndEncoding();
@@ -1985,6 +2481,9 @@ public class H {
 
         private String encoding;
 
+        /**
+         * Returns encoding of the request
+         */
         public String encoding() {
             if (null == encoding) {
                 parseContentTypeAndEncoding();
@@ -1997,7 +2496,7 @@ public class H {
         private void parseLocales() {
             String s = header(ACCEPT_LANGUAGE);
             if (S.empty(s)) {
-                locales = C.list(Config.defaultLocale());
+                locales = C.list(HttpConfig.defaultLocale());
                 return;
             }
 
@@ -2028,15 +2527,22 @@ public class H {
                 }
                 lb.add(new Locale(lang, country, variant));
             }
+            if (lb.isEmpty()) lb.add(HttpConfig.defaultLocale());
 
             locales = lb.toList();
         }
 
+        /**
+         * Returns locale of the request
+         */
         public Locale locale() {
             if (null == locales) parseLocales();
             return locales.get(0);
         }
 
+        /**
+         * Returns all locales of the request
+         */
         public C.List<Locale> locales() {
             if (null == locales) parseLocales();
             return locales;
@@ -2067,7 +2573,7 @@ public class H {
          * Returns body of the request as binary data using {@link java.io.InputStream}
          *
          * @throws IllegalStateException if {@link #reader()} has already
-         *              been called on this request instance
+         *                               been called on this request instance
          */
         public abstract InputStream inputStream() throws IllegalStateException;
 
@@ -2075,7 +2581,7 @@ public class H {
          * Returns body of the request as binary data using {@link java.io.Reader}
          *
          * @throws IllegalStateException if {@link #inputStream()} has already
-         *              been called on this request instance
+         *                               been called on this request instance
          */
         public abstract Reader reader() throws IllegalStateException;
 
@@ -2090,10 +2596,10 @@ public class H {
 
         /**
          * Return all parameter names
+         *
          * @return an {@link java.lang.Iterable} of parameter names
          */
         public abstract Iterable<String> paramNames();
-
 
         private void parseAuthorization() {
             if (null != user) return;
@@ -2101,7 +2607,7 @@ public class H {
             user = "";
             password = "";
             String s = header(AUTHORIZATION);
-            if (s.startsWith("Basic")) {
+            if (null != s && s.startsWith("Basic")) {
                 String data = s.substring(6);
                 String[] decodedData = new String(Codec.decodeBASE64(data)).split(":");
                 user = decodedData.length > 0 ? decodedData[0] : null;
@@ -2129,24 +2635,31 @@ public class H {
             return password;
         }
 
+        protected static void parsePathTokens() {
+            E.unsupport();
+        }
+
         /**
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
+         *
          * @return the current request instance
          */
         @SuppressWarnings("unchecked")
         public static <T extends Request> T current() {
-            return (T)Current.request();
+            return (T) Current.request();
         }
 
         /**
          * Set a request instance into the current execution context,
          * for example into a {@link java.lang.ThreadLocal}
+         *
          * @param request the request to be set to current execution context
          */
         public static <T extends Request> void current(T request) {
             Current.request(request);
         }
+
 
     } // eof Request
 
@@ -2162,26 +2675,396 @@ public class H {
         protected abstract Class<T> _impl();
 
         /**
+         * Returns the output stream to write to the response
+         *
+         * @throws java.lang.IllegalStateException          if
+         *                                                  {@link #writer()} is called already
+         * @throws org.osgl.exception.UnexpectedIOException if
+         *                                                  there are output exception
+         */
+        public abstract OutputStream outputStream()
+                throws IllegalStateException, UnexpectedIOException;
+
+        /**
+         * Returns the writer to write to the response
+         *
+         * @throws java.lang.IllegalStateException          if
+         *                                                  {@link #outputStream()} is called already
+         * @throws org.osgl.exception.UnexpectedIOException if
+         *                                                  there are output exception
+         */
+        public abstract Writer writer()
+                throws IllegalStateException, UnexpectedIOException;
+
+        /**
+         * Returns the name of the character encoding (MIME charset)
+         * used for the body sent in this response.
+         * The character encoding may have been specified explicitly
+         * using the {@link #characterEncoding(String)} or
+         * {@link #contentType(String)} methods, or implicitly using the
+         * {@link #locale(java.util.Locale)} method. Explicit specifications take
+         * precedence over implicit specifications. Calls made
+         * to these methods after <code>getWriter</code> has been
+         * called or after the response has been committed have no
+         * effect on the character encoding. If no character encoding
+         * has been specified, <code>ISO-8859-1</code> is returned.
+         * <p>See RFC 2047 (http://www.ietf.org/rfc/rfc2047.txt)
+         * for more information about character encoding and MIME.
+         *
+         * @return a <code>String</code> specifying the
+         * name of the character encoding, for
+         * example, <code>UTF-8</code>
+         */
+        public abstract String characterEncoding();
+
+        /**
+         * Returns the content type used for the MIME body
+         * sent in this response. The content type proper must
+         * have been specified using {@link #contentType(String)}
+         * before the response is committed. If no content type
+         * has been specified, this method returns null.
+         * If a content type has been specified, and a
+         * character encoding has been explicitly or implicitly
+         * specified as described in {@link #characterEncoding()}
+         * or {@link #writer()} has been called,
+         * the charset parameter is included in the string returned.
+         * If no character encoding has been specified, the
+         * charset parameter is omitted.
+         *
+         * @return a <code>String</code> specifying the
+         * content type, for example,
+         * <code>text/html; charset=UTF-8</code>,
+         * or null
+         */
+        public abstract T characterEncoding(String encoding);
+
+        /**
+         * Set the length of the content to be write to the response
+         *
+         * @param len an integer specifying the length of the
+         *            content being returned to the client; sets
+         *            the Content-Length header
+         * @return the response it self
+         * @see #outputStream
+         * @see #writer
+         */
+        public abstract T contentLength(int len);
+
+        /**
+         * Sub class to overwrite this method to set content type to
+         * the response
+         *
+         * @param type a <code>String</code> specifying the MIME
+         *             type of the content
+         */
+        protected abstract void _setContentType(String type);
+
+        private String ctntType;
+
+        /**
+         * Sets the content type of the response being sent to
+         * the client. The content type may include the type of character
+         * encoding used, for example, <code>text/html; charset=ISO-8859-4</code>.
+         * If content type has already been set to the response, this method
+         * will update the content type with the new value
+         * <p/>
+         * <p>this method must be called before calling {@link #writer()}
+         * or {@link #outputStream()}</p>
+         *
+         * @param type a <code>String</code> specifying the MIME
+         *             type of the content
+         * @return the response it self
+         * @see #outputStream
+         * @see #writer
+         * @see #initContentType(String)
+         */
+        public T contentType(String type) {
+            _setContentType(type);
+            ctntType = type;
+            return (T) this;
+        }
+
+        /**
+         * This method set the content type to the response if there
+         * is no content type been set already.
+         *
+         * @param type a <code>String</code> specifying the MIME
+         *             type of the content
+         * @return the response it self
+         * @see #contentType(String)
+         */
+        public T initContentType(String type) {
+            return (null == ctntType) ? contentType(type) : (T) this;
+        }
+
+        /**
+         * Sets the locale of the response, setting the headers (including the
+         * Content-Type's charset) as appropriate.  This method should be called
+         * before a call to {@link #writer()}.  By default, the response locale
+         * is the default locale for the server.
+         *
+         * @param loc the locale of the response
+         * @see #locale()
+         */
+        protected abstract void _setLocale(Locale loc);
+
+        public T locale(Locale locale) {
+            _setLocale(locale);
+            return (T) this;
+        }
+
+
+        /**
+         * Returns the locale assigned to the response.
+         *
+         * @see #locale(java.util.Locale)
+         */
+        public abstract Locale locale();
+
+        /**
+         * Adds the specified cookie to the response.  This method can be called
+         * multiple times to add more than one cookie.
+         *
+         * @param cookie the Cookie to return to the client
+         */
+        public abstract void addCookie(H.Cookie cookie);
+
+
+        /**
+         * Returns a boolean indicating whether the named response header
+         * has already been set.
+         *
+         * @param name the header name
+         * @return <code>true</code> if the named response header
+         * has already been set;
+         * <code>false</code> otherwise
+         */
+        public abstract boolean containsHeader(String name);
+
+        /**
+         * Sends an error response to the client using the specified
+         * status.  The server defaults to creating the
+         * response to look like an HTML-formatted server error page
+         * containing the specified message, setting the content type
+         * to "text/html", leaving cookies and other headers unmodified.
+         * <p/>
+         * If an error-page declaration has been made for the web application
+         * corresponding to the status code passed in, it will be served back in
+         * preference to the suggested msg parameter.
+         * <p/>
+         * <p>If the response has already been committed, this method throws
+         * an IllegalStateException.
+         * After using this method, the response should be considered
+         * to be committed and should not be written to.
+         *
+         * @param sc  the error status code
+         * @param msg the descriptive message
+         * @return the response itself
+         * @throws org.osgl.exception.UnexpectedIOException If an input or output exception occurs
+         * @throws IllegalStateException                    If the response was committed
+         */
+
+        public abstract T sendError(int sc, String msg);
+
+        /**
+         * Sames as {@link #sendError(int, String)} but accept message format
+         * arguments
+         *
+         * @param sc   the error status code
+         * @param msg  the descriptive message template
+         * @param args the descriptive message arguments
+         * @return the response itself
+         * @throws org.osgl.exception.UnexpectedIOException If an input or output exception occurs
+         * @throws IllegalStateException                    If the response was committed
+         */
+        public T sendError(int sc, String msg, Object... args) {
+            return sendError(sc, S.fmt(msg, args));
+        }
+
+        /**
+         * Sends an error response to the client using the specified status
+         * code and clearing the buffer.
+         * <p>If the response has already been committed, this method throws
+         * an IllegalStateException.
+         * After using this method, the response should be considered
+         * to be committed and should not be written to.
+         *
+         * @param sc the error status code
+         * @return the response itself
+         * @throws org.osgl.exception.UnexpectedIOException If the response was committed before this method call
+         */
+
+        public abstract T sendError(int sc);
+
+        /**
+         * Sends a temporary redirect response to the client using the
+         * specified redirect location URL.  This method can accept relative URLs;
+         * the servlet container must convert the relative URL to an absolute URL
+         * before sending the response to the client. If the location is relative
+         * without a leading '/' the container interprets it as relative to
+         * the current request URI. If the location is relative with a leading
+         * '/' the container interprets it as relative to the servlet container root.
+         * <p/>
+         * <p>If the response has already been committed, this method throws
+         * an IllegalStateException.
+         * After using this method, the response should be considered
+         * to be committed and should not be written to.
+         *
+         * @param location the redirect location URL
+         * @return the response itself
+         * @throws org.osgl.exception.UnexpectedIOException If the response was committed before this method call
+         * @throws IllegalStateException                    If the response was committed or
+         *                                                  if a partial URL is given and cannot be converted into a valid URL
+         */
+        public abstract T sendRedirect(String location);
+
+        /**
+         * Sets a response header with the given name and value.
+         * If the header had already been set, the new value overwrites the
+         * previous one.  The <code>containsHeader</code> method can be
+         * used to test for the presence of a header before setting its
+         * value.
+         *
+         * @param name  the name of the header
+         * @param value the header value  If it contains octet string,
+         *              it should be encoded according to RFC 2047
+         *              (http://www.ietf.org/rfc/rfc2047.txt)
+         * @return the response itself
+         * @see #containsHeader
+         * @see #addHeader
+         */
+        public abstract T header(String name, String value);
+
+        /**
+         * Sets the status code for this response.  This method is used to
+         * set the return status code when there is no error (for example,
+         * for the status codes SC_OK or SC_MOVED_TEMPORARILY).  If there
+         * is an error, and the caller wishes to invoke an error-page defined
+         * in the web application, the <code>sendError</code> method should be used
+         * instead.
+         * <p> The container clears the buffer and sets the Location header, preserving
+         * cookies and other headers.
+         *
+         * @param sc the status code
+         * @return the response itself
+         * @see #sendError
+         * @see #status(org.osgl.http.H.Status)
+         */
+        public abstract T status(int sc);
+
+        /**
+         * Sets the status for this response.  This method is used to
+         * set the return status code when there is no error (for example,
+         * for the status OK or MOVED_TEMPORARILY).  If there
+         * is an error, and the caller wishes to invoke an error-page defined
+         * in the web application, the <code>sendError</code> method should be used
+         * instead.
+         * <p> The container clears the buffer and sets the Location header, preserving
+         * cookies and other headers.
+         *
+         * @param s the status
+         * @return the response itself
+         * @see #sendError
+         */
+        public T status(Status s) {
+            status(s.code);
+            return (T) this;
+        }
+
+
+        /**
+         * Adds a response header with the given name and value.
+         * This method allows response headers to have multiple values.
+         *
+         * @param name  the name of the header
+         * @param value the additional header value   If it contains
+         *              octet string, it should be encoded
+         *              according to RFC 2047
+         *              (http://www.ietf.org/rfc/rfc2047.txt)
+         * @return this response itself
+         * @see #header(String, String)
+         */
+        public abstract T addHeader(String name, String value);
+
+        /**
+         * Write a string to the response
+         *
+         * @param s the string to write to the response
+         * @return this response itself
+         */
+        public T writeContent(String s) {
+            try {
+                IO.write(s.getBytes(characterEncoding()), outputStream());
+            } catch (UnsupportedEncodingException e) {
+                throw E.encodingException(e);
+            }
+            return (T) this;
+        }
+
+        /**
+         * Write content to the response
+         *
+         * @param content the content to write
+         * @return the response itself
+         */
+        public T writeText(String content) {
+            _setContentType(Format.txt.toContentType());
+            return writeContent(content);
+        }
+
+        /**
+         * Write content to the response
+         *
+         * @param content the content to write
+         * @return the response itself
+         */
+        public T writeHtml(String content) {
+            _setContentType(Format.html.toContentType());
+            return writeContent(content);
+        }
+
+        /**
+         * Write content to the response
+         *
+         * @param content the content to write
+         * @return the response itself
+         */
+        public T writeJSON(String content) {
+            _setContentType(Format.json.toContentType());
+            return writeContent(content);
+        }
+
+        /**
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
+         *
          * @return the current request instance
          */
         @SuppressWarnings("unchecked")
-        public static <T extends Request> T current() {
-            return (T)Current.request();
+        public static <T extends Response> T current() {
+            return (T) Current.response();
         }
 
         /**
          * Set a request instance into the current execution context,
          * for example into a {@link java.lang.ThreadLocal}
-         * @param request the request to be set to current execution context
+         *
+         * @param response the request to be set to current execution context
          */
-        public static <T extends Request> void current(T request) {
-            Current.request(request);
+        public static <T extends Response> void current(T response) {
+            Current.response(response);
         }
+
     } // eof Response
 
     H() {
+    }
+
+    /**
+     * Clear all current context
+     */
+    public static void cleanUp() {
+        Current.clear();
     }
 
 }

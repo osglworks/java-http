@@ -14,6 +14,9 @@
   ~ License for the specific language governing permissions and limitations
   ~ under the License.
   -->
+<!-- history 
+0.1-SNAPSHOT - base verion when history log started
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
@@ -34,9 +37,9 @@
     </parent>
 
     <scm>
-        <connection>scm:git:git://github.com/greenlaw110/java-logging.git</connection>
-        <developerConnection>scm:git:git@github.com:greenlaw110/java-logging.git</developerConnection>
-        <url>git://github.com/greenlaw110/java-logging.git</url>
+        <connection>scm:git:git://github.com/greenlaw110/java-http.git</connection>
+        <developerConnection>scm:git:git@github.com:greenlaw110/java-http.git</developerConnection>
+        <url>git://github.com/greenlaw110/java-http.git</url>
     </scm>
 
     <properties>
@@ -91,6 +94,13 @@
         </dependency>
         
         <dependency>
+            <groupId>com.carrotsearch</groupId>
+            <artifactId>junit-benchmarks</artifactId>
+            <version>0.7.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.osgl</groupId>
             <artifactId>osgl-tool</artifactId>
             <version>0.3-SNAPSHOT</version>
@@ -100,6 +110,12 @@
             <groupId>org.osgl</groupId>
             <artifactId>osgl-logging</artifactId>
             <version>0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgl</groupId>
+            <artifactId>osgl-storage</artifactId>
+            <version>0.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
