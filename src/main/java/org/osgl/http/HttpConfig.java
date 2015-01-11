@@ -37,12 +37,12 @@ public class HttpConfig {
     private static String domain;
 
     public static void domain(String domain) {
-        E.npeIf(S.empty(domain));
+        E.npeIf(S.blank(domain));
         HttpConfig.domain = domain;
     }
 
     public static String domain() {
-        E.illegalStateIf(S.empty(domain), "domain has not been configured");
+        E.illegalStateIf(S.blank(domain), "domain has not been configured");
         return domain;
     }
 
@@ -77,7 +77,7 @@ public class HttpConfig {
      * @param context the context path to be configured
      */
     public static void contextPath(String context) {
-        if (S.empty(context)) ctx = "";
+        if (S.blank(context)) ctx = "";
         else {
             E.illegalArgumentIf(!context.startsWith("/"), "context path should start with \"/\"");
             if (context.endsWith("/")) {
@@ -105,7 +105,7 @@ public class HttpConfig {
      * @return
      */
     public static boolean isXForwardedAllowed() {
-        return S.notEmpty(xForwardedAllowed);
+        return S.notBlank(xForwardedAllowed);
     }
 
     /**

@@ -55,7 +55,7 @@ public class ServletCookie extends H.Cookie {
     }
 
     @Override
-    public long maxAge() {
+    public int maxAge() {
         return c.getMaxAge();
     }
 

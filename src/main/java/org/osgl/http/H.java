@@ -1002,7 +1002,7 @@ public class H {
             @Override
             public String toContentType() {
                 String s = Current.format();
-                if (!S.empty(s)) {
+                if (!S.blank(s)) {
                     return toContentType(s);
                 }
                 return "text/html";
@@ -1087,7 +1087,7 @@ public class H {
 
         private static Format resolve_(Format def, String accept) {
             Format fmt = def;
-            if (S.empty(accept)) {
+            if (S.blank(accept)) {
                 fmt = html;
             } else if (accept.contains("application/xhtml") || accept.contains("text/html") || accept.startsWith("*/*")) {
                 fmt = html;
@@ -1151,7 +1151,7 @@ public class H {
         private String name;
 
         // default is non-persistent cookie
-        private long maxAge = -1;
+        private int maxAge = -1;
 
         private boolean secure;
 
@@ -1173,7 +1173,7 @@ public class H {
             this.value = null == value ? "" : value;
         }
 
-        public Cookie(String name, String value, long maxAge, boolean secure, String path, String domain, boolean httpOnly) {
+        public Cookie(String name, String value, int maxAge, boolean secure, String path, String domain, boolean httpOnly) {
             this(name, value);
             this.maxAge = maxAge;
             this.secure = secure;
@@ -1261,7 +1261,7 @@ public class H {
          * maxAge is set to {@code -1} then the cookie will persist until
          * browser shutdown
          */
-        public long maxAge() {
+        public int maxAge() {
             return maxAge;
         }
 
@@ -1310,6 +1310,11 @@ public class H {
 
         public boolean httpOnly() {
             return httpOnly;
+        }
+
+        public Cookie httpOnly(boolean httpOnly) {
+            this.httpOnly = httpOnly;
+            return this;
         }
 
         private static void ensureInit() {
@@ -1527,7 +1532,7 @@ public class H {
          */
         public long expiry() {
             String s = data.get(TS_KEY);
-            if (S.empty(s)) return -1;
+            if (S.blank(s)) return -1;
             return Long.parseLong(s);
         }
 
@@ -1733,7 +1738,7 @@ public class H {
             long expiration = System.currentTimeMillis() + ttl * 1000;
             boolean hasTtl = ttl > -1;
             String value = null == sessionCookie ? null : sessionCookie.value();
-            if (S.empty(value)) {
+            if (S.blank(value)) {
                 if (hasTtl) {
                     session.expireOn(expiration);
                 }
@@ -2090,7 +2095,7 @@ public class H {
             Flash flash = new Flash();
             if (null != flashCookie) {
                 String value = flashCookie.value();
-                if (S.notEmpty(value)) {
+                if (S.notBlank(value)) {
                     String s = Codec.decodeUrl(value, Charsets.UTF_8);
                     Matcher m = _PARSER.matcher(s);
                     while (m.find()) {
@@ -2148,8 +2153,6 @@ public class H {
          * by application
          */
         protected abstract Class<T> _impl();
-
-        private List<String> pathTokens;
 
         private Map<String, String> params;
 
@@ -2262,13 +2265,6 @@ public class H {
             return Path.fullUrl(path(), this);
         }
 
-        public List<String> pathTokens() {
-            if (null == pathTokens) {
-                parsePathTokens();
-            }
-            return pathTokens;
-        }
-
         /**
          * Returns query string or an empty String if the request
          * doesn't contains a query string
@@ -2326,7 +2322,7 @@ public class H {
                 xRmtAddr = rmt;
             }
             String s = header(X_FORWARDED_FOR);
-            xRmtAddr = S.empty(s) ? rmt : s;
+            xRmtAddr = S.blank(s) ? rmt : s;
 
             // host and port
             String host = header(X_FORWARDED_HOST);
@@ -2456,7 +2452,7 @@ public class H {
                         // encoding-info was found in request
                         _encoding = encodingInfoParts[1].trim();
 
-                        if (S.notEmpty(_encoding) &&
+                        if (S.notBlank(_encoding) &&
                                 ((_encoding.startsWith("\"") && _encoding.endsWith("\""))
                                         || (_encoding.startsWith("'") && _encoding.endsWith("'")))
                                 ) {
@@ -2495,7 +2491,7 @@ public class H {
 
         private void parseLocales() {
             String s = header(ACCEPT_LANGUAGE);
-            if (S.empty(s)) {
+            if (S.blank(s)) {
                 locales = C.list(HttpConfig.defaultLocale());
                 return;
             }
@@ -2556,7 +2552,7 @@ public class H {
         public int contentLength() {
             if (len > -2) return len;
             String s = header(CONTENT_LENGTH);
-            if (S.empty(s)) {
+            if (S.blank(s)) {
                 len = -1;
             } else {
                 try {
@@ -2633,10 +2629,6 @@ public class H {
         public String password() {
             if (null == password) parseAuthorization();
             return password;
-        }
-
-        protected static void parsePathTokens() {
-            E.unsupport();
         }
 
         /**

@@ -2,11 +2,14 @@ package org.osgl.http.util;
 
 import org.osgl.http.H;
 import org.osgl.http.HttpConfig;
+import org.osgl.util.E;
 import org.osgl.util.FastStr;
 import org.osgl.util.ListBuilder;
 import org.osgl.util.S;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public enum Path {
     ;
@@ -122,6 +125,66 @@ public enum Path {
         return sb.toString();
     }
 
+    public static Iterator<CharSequence> tokenizer(final char[] buf) {
+        return tokenizer(buf, 0);
+    }
+
+    public static Iterator<CharSequence> tokenizer(final char[] buf, final int start) {
+        return tokenizer(buf, start, '/', '?');
+    }
+
+    public static Iterator<CharSequence> tokenizer(final char[] buf, final int start, final char separator, final char terminator) {
+        return new Iterator<CharSequence>() {
+            int cursor = start;
+            final int len = buf.length;
+            int begin = -1;
+            public boolean hasNext() {
+                // filter out separator
+                while (cursor < len) {
+                    char c = buf[cursor];
+                    if (c == separator) {
+                        cursor++;
+                    } else {
+                        break;
+                    }
+                }
+                return cursor < len && buf[cursor] != terminator;
+            }
+
+            @Override
+            public CharSequence next() {
+                for (int i = cursor; i < len; ++i) {
+                    char c = buf[i];
+                    if (c == terminator) {
+                        cursor = len;
+                        return (FastStr.unsafeOf(buf, begin, i));
+                    }
+                    if (c == separator) {
+                        if (begin > -1) {
+                            CharSequence ret = (FastStr.unsafeOf(buf, begin, i));
+                            cursor = i + 1;
+                            begin = -1;
+                            return ret;
+                        }
+                    } else if (begin == -1) {
+                        begin = i;
+                    }
+                    if (i == len - 1 && begin != -1) {
+                        // the last one
+                        cursor = len;
+                        return(FastStr.unsafeOf(buf, begin, i + 1));
+                    }
+                }
+                throw new NoSuchElementException();
+            }
+
+            @Override
+            public void remove() {
+                throw E.unsupport();
+            }
+        };
+    }
+
     public static List<CharSequence> tokenize(char[] buf) {
         return tokenize(buf, 0);
     }
@@ -131,7 +194,7 @@ public enum Path {
     }
 
     public static List<CharSequence> tokenize(char[] buf, int start, char separator, char terminator) {
-        int len = buf.length - start;
+        int len = buf.length;
         ListBuilder<CharSequence> lb = ListBuilder.create();
         int begin = -1;
         for (int i = start; i < len; ++i) {
