@@ -997,6 +997,24 @@ public class H {
                 return "text/plain";
             }
         },
+        /**
+         * The "application/pdf" content format
+         */
+        pdf {
+            @Override
+            public String toContentType() {
+                return "application/pdf";
+            }
+        },
+        /**
+         * The "application/rtf" content format
+         */
+        rtf {
+            @Override
+            public String toContentType() {
+                return "application/rtf";
+            }
+        },
 
         unknown {
             @Override
@@ -1103,10 +1121,14 @@ public class H {
                 fmt = xls;
             } else if (accept.contains("spreadsheetml")) {
                 fmt = xlsx;
+            } else if (accept.contains("pdf")) {
+                fmt = pdf;
             } else if (accept.contains("msword")) {
                 fmt = doc;
             } else if (accept.contains("wordprocessingml")) {
                 fmt = docx;
+            } else if (accept.contains("rtf")) {
+                fmt = rtf;
             }
 
             return fmt;
@@ -1734,7 +1756,7 @@ public class H {
          * @see #serialize(String)
          */
         public static Session resolve(Cookie sessionCookie, int ttl) {
-            H.Session session = new H.Session();
+            Session session = new Session();
             long expiration = System.currentTimeMillis() + ttl * 1000;
             boolean hasTtl = ttl > -1;
             String value = null == sessionCookie ? null : sessionCookie.value();
@@ -1756,7 +1778,7 @@ public class H {
                     }
                 }
                 if (hasTtl && session.expired()) {
-                    session = new H.Session().expireOn(expiration);
+                    session = new Session().expireOn(expiration);
                 }
             }
             return session;
@@ -2153,8 +2175,6 @@ public class H {
          * by application
          */
         protected abstract Class<T> _impl();
-
-        private Map<String, String> params;
 
         private Format fmt;
 
@@ -2583,12 +2603,24 @@ public class H {
 
         /**
          * Return a request parameter value by name. If there is no parameter
-         * found with the name specified, then {@code null} is returned
+         * found with the name specified, then {@code null} is returned. If
+         * there are multiple values associated with the name, then the
+         * first one is returned
          *
          * @param name the parameter name
          * @return the parameter value of {@code null} if not found
          */
-        public abstract String param(String name);
+        public abstract String paramVal(String name);
+
+        /**
+         * Returns all values associated with the name specified in the
+         * http request. If there is no parameter found with the name,
+         * then {@code new String[0]} shall be returned
+         *
+         * @param name the parameter name
+         * @return all values of the parameter
+         */
+        public abstract String[] paramVals(String name);
 
         /**
          * Return all parameter names

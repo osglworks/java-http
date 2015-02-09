@@ -98,8 +98,17 @@ public class ServletRequest extends H.Request {
     }
 
     @Override
-    public String param(String name) {
+    public String paramVal(String name) {
         return r.getParameter(name);
+    }
+
+    @Override
+    public String[] paramVals(String name) {
+        String[] ret = r.getParameterValues(name);
+        if (null == ret) {
+            ret = new String[0];
+        }
+        return ret;
     }
 
     @Override
