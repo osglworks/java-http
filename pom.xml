@@ -21,6 +21,8 @@
 0.2-SNAPSHOT 
 - upgrade to osgl-tool 0.4-SNAPSHOT
 - H.Request param now support multiple param values
+- Binding now take H.Request instead of Map<String, String[]> as parameter source
+- Add more methods to H.Response and H.Cookie
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 

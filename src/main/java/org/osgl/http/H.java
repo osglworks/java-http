@@ -38,6 +38,7 @@ public class H {
         }
 
         private static EnumSet<Method> unsafeMethods = EnumSet.of(POST, DELETE, PUT, PATCH);
+        private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, DELETE);
 
         /**
          * Returns if this http method is safe, meaning it
@@ -61,6 +62,10 @@ public class H {
 
         public static Method valueOfIgnoreCase(String method) {
             return valueOf(method.toUpperCase());
+        }
+
+        public static EnumSet<Method> actionMethods() {
+            return actionMethods.clone();
         }
     } // eof Method
 
@@ -1185,6 +1190,12 @@ public class H {
 
         private boolean httpOnly;
 
+        private int version;
+
+        private Date expires;
+
+        private String comment;
+
         public Cookie(String name) {
             this(name, "");
         }
@@ -1305,6 +1316,18 @@ public class H {
             return this;
         }
 
+        public Date expires() {
+            return null == expires ? new Date(_.ms() + maxAge * 1000) : expires;
+        }
+
+        public Cookie expires(Date expires) {
+            this.expires = expires;
+            if (null != expires && -1 == maxAge) {
+                maxAge = (int)((expires.getTime() - _.ms()) / 1000);
+            }
+            return this;
+        }
+
         /**
          * Returns <code>true</code> if the browser is sending cookies
          * only over a secure protocol, or <code>false</code> if the
@@ -1330,12 +1353,58 @@ public class H {
             return this;
         }
 
+        /**
+         * Returns the version of the protocol this cookie complies
+         * with. Version 1 complies with RFC 2109,
+         * and version 0 complies with the original
+         * cookie specification drafted by Netscape. Cookies provided
+         * by a browser use and identify the browser's cookie version.
+         *
+         * @return		0 if the cookie complies with the
+         *				original Netscape specification; 1
+         *				if the cookie complies with RFC 2109
+         *
+         * @see #version(int)
+         */
+        public int version() {
+            return version;
+        }
+
+        /**
+         * Sets the version of the cookie protocol that this Cookie complies
+         * with.
+         *
+         * <p>Version 0 complies with the original Netscape cookie
+         * specification. Version 1 complies with RFC 2109.
+         *
+         * <p>Since RFC 2109 is still somewhat new, consider
+         * version 1 as experimental; do not use it yet on production sites.
+         *
+         * @param v	0 if the cookie should comply with the original Netscape
+         * specification; 1 if the cookie should comply with RFC 2109
+         *
+         * @see #version()
+         */
+        public Cookie version(int v) {
+            this.version = v;
+            return this;
+        }
+
         public boolean httpOnly() {
             return httpOnly;
         }
 
         public Cookie httpOnly(boolean httpOnly) {
             this.httpOnly = httpOnly;
+            return this;
+        }
+
+        public String comment() {
+            return comment;
+        }
+
+        public Cookie comment(String comment) {
+            this.comment = comment;
             return this;
         }
 
@@ -2564,19 +2633,19 @@ public class H {
             return locales;
         }
 
-        private int len = -2;
+        private long len = -2;
 
         /**
          * Returns the content length of the request
          */
-        public int contentLength() {
+        public long contentLength() {
             if (len > -2) return len;
             String s = header(CONTENT_LENGTH);
             if (S.blank(s)) {
                 len = -1;
             } else {
                 try {
-                    len = Integer.parseInt(s);
+                    len = Long.parseLong(s);
                 } catch (NumberFormatException e) {
                     len = -1;
                     logger.error("Error parsing content-length: %s", s);
@@ -2692,11 +2761,30 @@ public class H {
      */
     public static abstract class Response<T extends Response> {
 
+        private ResponseState state;
+        private volatile OutputStream os;
+        private volatile Writer w;
+
         /**
          * Returns the class of the implementation. Not to be used
          * by application
          */
         protected abstract Class<T> _impl();
+
+        protected abstract OutputStream createOutputStream();
+
+        private void createWriter() {
+            if (null != w) {
+                return;
+            }
+            synchronized (this) {
+                if (null != w) {
+                    return;
+                }
+                createOutputStream();
+                w = new OutputStreamWriter(os);
+            }
+        }
 
         /**
          * Returns the output stream to write to the response
@@ -2706,8 +2794,10 @@ public class H {
          * @throws org.osgl.exception.UnexpectedIOException if
          *                                                  there are output exception
          */
-        public abstract OutputStream outputStream()
-                throws IllegalStateException, UnexpectedIOException;
+        public final OutputStream outputStream()
+                throws IllegalStateException, UnexpectedIOException {
+            return state.outputStream(this);
+        }
 
         /**
          * Returns the writer to write to the response
@@ -2717,8 +2807,10 @@ public class H {
          * @throws org.osgl.exception.UnexpectedIOException if
          *                                                  there are output exception
          */
-        public abstract Writer writer()
-                throws IllegalStateException, UnexpectedIOException;
+        public final Writer writer()
+                throws IllegalStateException, UnexpectedIOException {
+            return state.writer(this);
+        }
 
         /**
          * Returns the name of the character encoding (MIME charset)
@@ -2765,14 +2857,14 @@ public class H {
         /**
          * Set the length of the content to be write to the response
          *
-         * @param len an integer specifying the length of the
+         * @param len an long value specifying the length of the
          *            content being returned to the client; sets
          *            the Content-Length header
          * @return the response it self
          * @see #outputStream
          * @see #writer
          */
-        public abstract T contentLength(int len);
+        public abstract T contentLength(long len);
 
         /**
          * Sub class to overwrite this method to set content type to
@@ -3059,6 +3151,11 @@ public class H {
         }
 
         /**
+         * Calling this method commits the response, meaning the status
+         * code and headers will be written to the client
+         */
+        public abstract void commit();
+        /**
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
          *
@@ -3077,6 +3174,35 @@ public class H {
          */
         public static <T extends Response> void current(T response) {
             Current.response(response);
+        }
+
+
+        private static enum ResponseState {
+            NONE,
+            STREAM () {
+                @Override
+                Writer writer(Response resp) {
+                    throw new IllegalStateException("writer() already called");
+                }
+            },
+            WRITER () {
+                @Override
+                OutputStream outputStream(Response resp) {
+                    throw new IllegalStateException("outputStream() already called");
+                }
+            };
+
+            OutputStream outputStream(Response resp) {
+                resp.createOutputStream();
+                resp.state = STREAM;
+                return resp.os;
+            }
+
+            Writer writer(Response resp) {
+                resp.createWriter();
+                resp.state = WRITER;
+                return resp.w;
+            }
         }
 
     } // eof Response

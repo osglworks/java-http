@@ -53,8 +53,8 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public ServletResponse contentLength(int len) {
-        r.setContentLength(len);
+    public ServletResponse contentLength(long len) {
+        r.setContentLength((int) len);
         return this;
     }
 
@@ -129,5 +129,14 @@ public class ServletResponse extends H.Response<ServletResponse> {
     public ServletResponse addHeader(String name, String value) {
         r.addHeader(name, value);
         return this;
+    }
+
+    @Override
+    public void commit() {
+        try {
+            r.flushBuffer();
+        } catch (IOException e) {
+            throw E.ioException(e);
+        }
     }
 }
