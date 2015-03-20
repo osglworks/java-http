@@ -2763,7 +2763,8 @@ public class H {
 
         private ResponseState state;
         private volatile OutputStream os;
-        private volatile Writer w;
+        private volatile PrintWriter w;
+        private String ctntType;
 
         /**
          * Returns the class of the implementation. Not to be used
@@ -2807,9 +2808,13 @@ public class H {
          * @throws org.osgl.exception.UnexpectedIOException if
          *                                                  there are output exception
          */
-        public final Writer writer()
+        public final PrintWriter writer()
                 throws IllegalStateException, UnexpectedIOException {
             return state.writer(this);
+        }
+
+        public final boolean writerCreated() {
+            return state == ResponseState.WRITER;
         }
 
         /**
@@ -2874,8 +2879,6 @@ public class H {
          *             type of the content
          */
         protected abstract void _setContentType(String type);
-
-        private String ctntType;
 
         /**
          * Sets the content type of the response being sent to
@@ -3198,7 +3201,7 @@ public class H {
                 return resp.os;
             }
 
-            Writer writer(Response resp) {
+            PrintWriter writer(Response resp) {
                 resp.createWriter();
                 resp.state = WRITER;
                 return resp.w;
