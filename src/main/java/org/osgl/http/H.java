@@ -12,6 +12,7 @@ import org.osgl.util.*;
 import org.osgl.web.util.UserAgent;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1304,11 +1305,12 @@ public class H {
          * after that many seconds have passed. Note that the value is
          * the <i>maximum</i> age when the cookie will expire, not the cookie's
          * current age.
-         *
+         * <p/>
          * <p>A negative value means
          * that the cookie is not stored persistently and will be deleted
          * when the Web browser exits. A zero value causes the cookie
          * to be deleted.
+         *
          * @see #maxAge()
          */
         public Cookie maxAge(int maxAge) {
@@ -1323,7 +1325,7 @@ public class H {
         public Cookie expires(Date expires) {
             this.expires = expires;
             if (null != expires && -1 == maxAge) {
-                maxAge = (int)((expires.getTime() - _.ms()) / 1000);
+                maxAge = (int) ((expires.getTime() - _.ms()) / 1000);
             }
             return this;
         }
@@ -1360,10 +1362,9 @@ public class H {
          * cookie specification drafted by Netscape. Cookies provided
          * by a browser use and identify the browser's cookie version.
          *
-         * @return		0 if the cookie complies with the
-         *				original Netscape specification; 1
-         *				if the cookie complies with RFC 2109
-         *
+         * @return 0 if the cookie complies with the
+         * original Netscape specification; 1
+         * if the cookie complies with RFC 2109
          * @see #version(int)
          */
         public int version() {
@@ -1373,16 +1374,15 @@ public class H {
         /**
          * Sets the version of the cookie protocol that this Cookie complies
          * with.
-         *
+         * <p/>
          * <p>Version 0 complies with the original Netscape cookie
          * specification. Version 1 complies with RFC 2109.
-         *
+         * <p/>
          * <p>Since RFC 2109 is still somewhat new, consider
          * version 1 as experimental; do not use it yet on production sites.
          *
-         * @param v	0 if the cookie should comply with the original Netscape
-         * specification; 1 if the cookie should comply with RFC 2109
-         *
+         * @param v 0 if the cookie should comply with the original Netscape
+         *          specification; 1 if the cookie should comply with RFC 2109
          * @see #version()
          */
         public Cookie version(int v) {
@@ -1457,6 +1457,7 @@ public class H {
                     return null;
                 }
             };
+
         }
 
     } // eof Cookie
@@ -1616,10 +1617,11 @@ public class H {
         /**
          * Returns the expiration time in milliseconds of this session. If
          * there is no expiration set up, then this method return {@code -1}
+         *
          * @return the difference, measured in milliseconds, between
-         *         the expiry of the session and midnight, January 1,
-         *         1970 UTC, or {@code -1} if the session has no
-         *         expiry
+         * the expiry of the session and midnight, January 1,
+         * 1970 UTC, or {@code -1} if the session has no
+         * expiry
          */
         public long expiry() {
             String s = data.get(TS_KEY);
@@ -1888,7 +1890,7 @@ public class H {
             Cookie cookie = new Cookie(sessionKey).value(value);
 
             if (expiry > -1L) {
-                int ttl = (int)((expiry - System.currentTimeMillis()) / 1000);
+                int ttl = (int) ((expiry - System.currentTimeMillis()) / 1000);
                 cookie.maxAge(ttl);
             }
             return cookie;
@@ -2178,6 +2180,7 @@ public class H {
         /**
          * Resolve a Flash instance from a cookie. If the cookie supplied
          * is {@code null} then an empty Flash instance is returned
+         *
          * @param flashCookie the flash cookie
          * @return a Flash instance
          * @see #serialize(String)
@@ -2233,6 +2236,7 @@ public class H {
     public static abstract class Request<T extends Request> {
 
         private static SimpleDateFormat dateFormat;
+
         static {
             dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
             dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -2252,6 +2256,12 @@ public class H {
         private String xRmtAddr;
 
         private int port = -1;
+
+        private State state;
+
+        protected volatile InputStream inputStream;
+
+        protected volatile Reader reader;
 
         /**
          * Returns the HTTP method of the request
@@ -2569,7 +2579,7 @@ public class H {
         /**
          * Returns encoding of the request
          */
-        public String encoding() {
+        public String characterEncoding() {
             if (null == encoding) {
                 parseContentTypeAndEncoding();
             }
@@ -2654,13 +2664,36 @@ public class H {
             return len;
         }
 
+        public boolean readerCreated() {
+            return state == State.READER;
+        }
+
+        protected abstract InputStream createInputStream();
+
         /**
          * Returns body of the request as binary data using {@link java.io.InputStream}
          *
          * @throws IllegalStateException if {@link #reader()} has already
          *                               been called on this request instance
          */
-        public abstract InputStream inputStream() throws IllegalStateException;
+        public final InputStream inputStream() throws IllegalStateException {
+            return state.inputStream(this);
+        }
+
+        private void createReader() {
+            if (null != reader) {
+                return;
+            }
+            synchronized (this) {
+                if (null != reader) {
+                    return;
+                }
+                createInputStream();
+                String charset = characterEncoding();
+                Charset cs = null == charset ? Charsets.UTF_8 : Charset.forName(charset);
+                reader = new InputStreamReader(inputStream(), cs);
+            }
+        }
 
         /**
          * Returns body of the request as binary data using {@link java.io.Reader}
@@ -2668,7 +2701,9 @@ public class H {
          * @throws IllegalStateException if {@link #inputStream()} has already
          *                               been called on this request instance
          */
-        public abstract Reader reader() throws IllegalStateException;
+        public final Reader reader() throws IllegalStateException {
+            return state.reader(this);
+        }
 
         /**
          * Return a request parameter value by name. If there is no parameter
@@ -2753,6 +2788,33 @@ public class H {
             Current.request(request);
         }
 
+        private enum State {
+            NONE,
+            STREAM() {
+                @Override
+                Reader reader(Request req) {
+                    throw new IllegalStateException("reader() already called");
+                }
+            },
+            READER() {
+                @Override
+                InputStream inputStream(Request req) {
+                    throw new IllegalStateException("inputStream() already called");
+                }
+            };
+
+            InputStream inputStream(Request req) {
+                req.inputStream = req.createInputStream();
+                req.state = STREAM;
+                return req.inputStream;
+            }
+
+            Reader reader(Request req) {
+                req.createReader();
+                req.state = READER;
+                return req.reader;
+            }
+        }
 
     } // eof Request
 
@@ -2761,9 +2823,9 @@ public class H {
      */
     public static abstract class Response<T extends Response> {
 
-        private ResponseState state;
-        private volatile OutputStream os;
-        private volatile Writer w;
+        private State state = State.NONE;
+        protected volatile OutputStream outputStream;
+        protected volatile Writer writer;
 
         /**
          * Returns the class of the implementation. Not to be used
@@ -2771,18 +2833,24 @@ public class H {
          */
         protected abstract Class<T> _impl();
 
+        public boolean writerCreated() {
+            return state == State.WRITER;
+        }
+
         protected abstract OutputStream createOutputStream();
 
         private void createWriter() {
-            if (null != w) {
+            if (null != writer) {
                 return;
             }
             synchronized (this) {
-                if (null != w) {
+                if (null != writer) {
                     return;
                 }
-                createOutputStream();
-                w = new OutputStreamWriter(os);
+                outputStream = createOutputStream();
+                String charset = characterEncoding();
+                Charset cs = null == charset ? Charsets.UTF_8 : Charset.forName(charset);
+                writer = new OutputStreamWriter(outputStream, cs);
             }
         }
 
@@ -2802,14 +2870,27 @@ public class H {
         /**
          * Returns the writer to write to the response
          *
-         * @throws java.lang.IllegalStateException          if
-         *                                                  {@link #outputStream()} is called already
-         * @throws org.osgl.exception.UnexpectedIOException if
-         *                                                  there are output exception
+         * @throws java.lang.IllegalStateException          if {@link #outputStream()} is called already
+         * @throws org.osgl.exception.UnexpectedIOException if there are output exception
          */
         public final Writer writer()
                 throws IllegalStateException, UnexpectedIOException {
             return state.writer(this);
+        }
+
+        /**
+         * Returns a print writer to write to the response
+         *
+         * @throws IllegalStateException if {@link #outputStream()} is called already
+         * @throws UnexpectedIOException if there are output exception
+         */
+        public final PrintWriter printWriter() {
+            Writer w = writer();
+            if (w instanceof PrintWriter) {
+                return (PrintWriter) w;
+            } else {
+                return new PrintWriter(w);
+            }
         }
 
         /**
@@ -2875,7 +2956,7 @@ public class H {
          */
         protected abstract void _setContentType(String type);
 
-        private String ctntType;
+        private String contentType;
 
         /**
          * Sets the content type of the response being sent to
@@ -2896,7 +2977,7 @@ public class H {
          */
         public T contentType(String type) {
             _setContentType(type);
-            ctntType = type;
+            contentType = type;
             return (T) this;
         }
 
@@ -2910,7 +2991,7 @@ public class H {
          * @see #contentType(String)
          */
         public T initContentType(String type) {
-            return (null == ctntType) ? contentType(type) : (T) this;
+            return (null == contentType) ? contentType(type) : (T) this;
         }
 
         /**
@@ -3155,6 +3236,7 @@ public class H {
          * code and headers will be written to the client
          */
         public abstract void commit();
+
         /**
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
@@ -3176,16 +3258,15 @@ public class H {
             Current.response(response);
         }
 
-
-        private static enum ResponseState {
+        private enum State {
             NONE,
-            STREAM () {
+            STREAM() {
                 @Override
                 Writer writer(Response resp) {
                     throw new IllegalStateException("writer() already called");
                 }
             },
-            WRITER () {
+            WRITER() {
                 @Override
                 OutputStream outputStream(Response resp) {
                     throw new IllegalStateException("outputStream() already called");
@@ -3193,15 +3274,15 @@ public class H {
             };
 
             OutputStream outputStream(Response resp) {
-                resp.createOutputStream();
+                resp.outputStream = resp.createOutputStream();
                 resp.state = STREAM;
-                return resp.os;
+                return resp.outputStream;
             }
 
             Writer writer(Response resp) {
                 resp.createWriter();
                 resp.state = WRITER;
-                return resp.w;
+                return resp.writer;
             }
         }
 

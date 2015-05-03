@@ -80,18 +80,9 @@ public class ServletRequest extends H.Request {
     }
 
     @Override
-    public InputStream inputStream() throws IllegalStateException {
+    public InputStream createInputStream() throws IllegalStateException {
         try {
             return r.getInputStream();
-        } catch (IOException e) {
-            throw E.ioException(e);
-        }
-    }
-
-    @Override
-    public Reader reader() throws IllegalStateException {
-        try {
-            return r.getReader();
         } catch (IOException e) {
             throw E.ioException(e);
         }

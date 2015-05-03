@@ -35,27 +35,18 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public OutputStream outputStream() throws IllegalStateException, UnexpectedIOException {
+    public ServletResponse contentLength(long len) {
+        r.setContentLength((int) len);
+        return this;
+    }
+
+    @Override
+    protected OutputStream createOutputStream() {
         try {
             return r.getOutputStream();
         } catch (IOException e) {
             throw E.ioException(e);
         }
-    }
-
-    @Override
-    public Writer writer() throws IllegalStateException, UnexpectedIOException {
-        try {
-            return r.getWriter();
-        } catch (IOException e) {
-            throw E.ioException(e);
-        }
-    }
-
-    @Override
-    public ServletResponse contentLength(long len) {
-        r.setContentLength((int) len);
-        return this;
     }
 
     @Override
