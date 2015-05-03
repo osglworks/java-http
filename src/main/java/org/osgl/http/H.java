@@ -2957,7 +2957,6 @@ public class H {
         protected abstract void _setContentType(String type);
 
         private String contentType;
-
         /**
          * Sets the content type of the response being sent to
          * the client. The content type may include the type of character
