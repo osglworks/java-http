@@ -77,7 +77,11 @@ public enum Path {
         if (null == req) return url(path);
         if (isAbsoluteUrl(path)) return path;
 
-        StringBuilder sb = S.builder(req.contextPath());
+        String ctx = req.contextPath();
+        StringBuilder sb = S.builder();
+        if (!"/".equals(ctx)) {
+            sb.append(ctx);
+        }
         if (!path.startsWith("/")) sb.append("/");
         return sb.append(path).toString();
     }

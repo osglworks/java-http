@@ -2257,7 +2257,7 @@ public class H {
 
         private int port = -1;
 
-        private State state;
+        private State state = State.NONE;
 
         protected volatile InputStream inputStream;
 
