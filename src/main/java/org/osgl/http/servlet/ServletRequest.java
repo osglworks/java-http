@@ -55,7 +55,7 @@ public class ServletRequest extends H.Request {
     }
 
     @Override
-    protected String _remoteAddr() {
+    protected String _ip() {
         return r.getRemoteAddr();
     }
 

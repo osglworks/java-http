@@ -175,6 +175,11 @@ public class H {
          */
         MULTIPLE_CHOICES(300),
         /**
+         * {@code 278} Faked http status to handle redirection on ajax case
+         * @see <a href="http://stackoverflow.com/questions/199099/how-to-manage-a-redirect-request-after-a-jquery-ajax-call">this</a> stackoverflow
+         */
+        FOUND_AJAX(278),
+        /**
          * {@code 301 Moved Permanently}.
          *
          * @see <a href="http://tools.ietf.org/html/rfc2616#section-10.3.2">HTTP/1.1</a>
@@ -1462,6 +1467,147 @@ public class H {
 
     } // eof Cookie
 
+    public static class KV<T extends KV> {
+        protected Map<String, String> data = C.newMap();
+        private boolean dirty = false;
+
+        private KV() {}
+
+        private KV(Map<String, String> data) {
+            E.NPE(data);
+            this.data = data;
+        }
+
+        /**
+         * Associate a string value with the key specified during
+         * initialization. The difference between calling {@code load}
+         * and {@link #put(String, String)} is the former will not change
+         * the dirty tag
+         */
+        public T load(String key, String val) {
+            E.illegalArgumentIf(key.contains(":"));
+            data.put(key, val);
+            return me();
+        }
+
+        /**
+         * Associate a string value with the key specified.
+         */
+        public T put(String key, String val) {
+            E.illegalArgumentIf(key.contains(":"));
+            dirty = true;
+            return load(key, val);
+        }
+
+        /**
+         * Associate an Object value's String representation with the
+         * key specified. If the object is {@code null} then {@code null}
+         * is associated with the key specified
+         */
+        public T put(String key, Object val) {
+            String valStr = null == val ? null : val.toString();
+            return put(key, valStr);
+        }
+
+        /**
+         * Returns the string value associated with the key specified
+         */
+        public String get(String key) {
+            return data.get(key);
+        }
+
+        /**
+         * Returns the key set of internal data map
+         */
+        public Set<String> keySet() {
+            return data.keySet();
+        }
+
+        /**
+         * Returns {@code true} if internal data map is empty
+         */
+        public boolean isEmpty() {
+            return data.isEmpty();
+        }
+
+        /**
+         * Indicate if the KV has been changed
+         *
+         * @return {@code true} if this instance has been changed
+         */
+        public boolean dirty() {
+            return dirty;
+        }
+
+        /**
+         * Alias of {@link #dirty()}
+         */
+        public boolean changed() {
+            return dirty;
+        }
+
+        /**
+         * Returns true if the internal data map is empty
+         */
+        public boolean empty() {
+            return data.isEmpty();
+        }
+
+        /**
+         * Returns true if an association with key specified exists in
+         * the internal map
+         */
+        public boolean containsKey(String key) {
+            return data.containsKey(key);
+        }
+
+        /**
+         * Alias of {@link #containsKey(String)}
+         */
+        public boolean contains(String key) {
+            return containsKey(key);
+        }
+
+        /**
+         * Returns the number of assoications stored in the internal map
+         */
+        public int size() {
+            return data.size();
+        }
+
+        /**
+         * Release an association with key specified
+         * @param key specify the k-v pair that should be removed from internal map
+         * @return this instance
+         */
+        public T remove(String key) {
+            data.remove(key);
+            return me();
+        }
+
+        /**
+         * Clear the internal data map. In other words, all
+         * Key/Value association stored in this instance has been
+         * release
+         *
+         * @return this instance
+         */
+        public T clear() {
+            data.clear();
+            return me();
+        }
+
+        @Override
+        public String toString() {
+            return data.toString();
+        }
+
+        protected T me() {
+            return (T) this;
+        }
+
+    }
+
     /**
      * Defines a data structure to encapsulate a stateless session which
      * accept only {@code String} type value, and will be persisted at
@@ -1474,29 +1620,36 @@ public class H {
      * to decide whether cache methods are provided and how it is
      * implemented</p>
      */
-    public static final class Session {
+    public static final class Session extends KV<Session> {
 
-        private static final String ID_KEY = "___ID";
-        private static final String TS_KEY = "___TS";
+        /**
+         * Session identifier
+         */
+        public static final String KEY_ID = "___ID";
 
-        private C.Map<String, String> data = C.newMap();
+        /**
+         * Stores the expiration date in the session
+         */
+        public static final String KEY_EXPIRATION = "___TS";
+
+        /**
+         * Stores the authenticity token in the session
+         */
+        public static final String KEY_AUTHENTICITY_TOKEN = "___AT";
+
+        /**
+         * Used to mark if a session has just expired
+         */
+        public static final String KEY_EXPIRE_INDICATOR = "___expired";
+
+        /**
+         * Stores the fingerprint to the session
+         */
+        public static final String KEY_FINGER_PRINT = "__FP";
+
         private String id;
-        private boolean dirty = false;
 
         public Session() {
-        }
-
-        @Override
-        public String toString() {
-            return data.toString();
-        }
-
-        private void change() {
-            dirty = true;
-        }
-
-        public boolean changed() {
-            return !dirty;
         }
 
         /**
@@ -1505,7 +1658,7 @@ public class H {
         public String id() {
             if (null == id) {
                 id = UUID.randomUUID().toString();
-                data.put(ID_KEY, id());
+                put(KEY_ID, id());
             }
             return id;
         }
@@ -1513,92 +1666,11 @@ public class H {
         // ------- regular session attribute operations ---
 
         /**
-         * Set a session attribute. If the attribute already exists
-         * then the value is updated; otherwise an attribute is added
-         * to the session
-         *
-         * @param key   the attribute key
-         * @param value the attribute value in string
-         * @return this session instance
-         */
-        public Session put(String key, String value) {
-            change();
-            data.put(key, value);
-            return this;
-        }
-
-        /**
-         * Set a session attribute with {@code Object} type value.
-         * However the session stores the value's
-         * {@link Object#toString() string representation}
-         * only
-         *
-         * @param key   the attribute key
-         * @param value the attribute value in Object
-         * @return this session instance
-         */
-        public Session put(String key, Object value) {
-            return put(key, null == value ? (String) null : S.string(value));
-        }
-
-        /**
-         * Returns an attribute value by name
-         *
-         * @param key the attribute key
-         * @return the value of the attribute or {@code null} if
-         * the attribute cannot be found by name
-         */
-        public String get(String key) {
-            return data.get(key);
-        }
-
-        /**
-         * Removes an attribute from session specified by key
-         *
-         * @param key the key of the attribute to be removed
-         * @return the session instance
-         */
-        public Session remove(String key) {
-            change();
-            data.remove(key);
-            return this;
-        }
-
-        /**
-         * Removes an array of attributes from session specified by
-         * key array
-         *
-         * @param key  the first attribute key
-         * @param keys the rest attribute keys
-         * @return this session object
-         */
-        public Session remove(String key, String... keys) {
-            change();
-            data.remove(key);
-            for (String k : keys) {
-                data.remove(k);
-            }
-            return this;
-        }
-
-        /**
-         * Remove all attributes stored with the session
-         *
-         * @return this session instance
-         */
-        public Session clear() {
-            if (data.isEmpty()) return this;
-            change();
-            data.clear();
-            return this;
-        }
-
-        /**
          * Returns {@code true} if the session is empty. e.g.
          * does not contain anything else than the timestamp
          */
         public boolean empty() {
-            return data.isEmpty() || (data.containsKey(TS_KEY) && data.size() == 1);
+            return super.empty() || (containsKey(KEY_EXPIRATION) && size() == 1);
         }
 
         /**
@@ -1624,7 +1696,7 @@ public class H {
          * expiry
          */
         public long expiry() {
-            String s = data.get(TS_KEY);
+            String s = get(KEY_EXPIRATION);
             if (S.blank(s)) return -1;
             return Long.parseLong(s);
         }
@@ -1637,19 +1709,8 @@ public class H {
          * @return the session instance
          */
         public Session expireOn(long expiry) {
-            data.put(TS_KEY, S.string(expiry));
+            put(KEY_EXPIRATION, S.string(expiry));
             return this;
-        }
-
-        /**
-         * Check if the session has an attribute specified by key
-         *
-         * @param key the attribute key
-         * @return {@code true} if the session contains the attribute
-         * with key specified
-         */
-        public boolean contains(String key) {
-            return data.containsKey(key);
         }
 
         // ------- eof regular session attribute operations ---
@@ -1877,11 +1938,11 @@ public class H {
                 return new H.Cookie(sessionKey).maxAge(0);
             }
             StringBuilder sb = S.builder();
-            for (String k : data.keySet()) {
+            for (String k : keySet()) {
                 sb.append(S.HSEP);
                 sb.append(k);
                 sb.append(":");
-                sb.append(data.get(k));
+                sb.append(get(k));
                 sb.append(S.HSEP);
             }
             String data = Codec.encodeUrl(sb.toString(), Charsets.UTF_8);
@@ -1913,13 +1974,16 @@ public class H {
      * including keys and values shall not exceed 4096 bytes as flash is
      * persisted as cookie in browser</p>
      */
-    public static final class Flash {
-
-        private Map<String, String> data = new HashMap<String, String>();
-        private Map<String, String> out = new HashMap<String, String>();
+    public static final class Flash extends KV<Flash> {
 
         // used to parse flash data persisted in the cookie value
         private static final Pattern _PARSER = Session._PARSER;
+
+        /**
+         * Stores the data that will be output to cookie so next time the user's request income
+         * they will be available for the application to access
+         */
+        private Map<String, String> out = C.newMap();
 
 
         /**
@@ -1931,10 +1995,8 @@ public class H {
          * @return the flash instance
          */
         public Flash put(String key, String value) {
-            E.illegalArgumentIf(key.contains(":"), "Character ':' is invalid in a flash key.");
-            data.put(key, value);
             out.put(key, value);
-            return this;
+            return super.put(key, value);
         }
 
         /**
@@ -1947,7 +2009,7 @@ public class H {
          * @return this flash instance
          */
         public Flash put(String key, Object value) {
-            return put(key, null == value ? (String) null : value.toString());
+            return put(key, null == value ? null : value.toString());
         }
 
         /**
@@ -1959,63 +2021,7 @@ public class H {
          * @return the flash instance
          */
         public Flash now(String key, String value) {
-            if (key.contains(":")) {
-                throw new IllegalArgumentException("Character ':' is invalid in a flash key.");
-            }
-            data.put(key, value);
-            return this;
-        }
-
-        /**
-         * Check if the data buffer contains a flash data
-         * identified by the key specified
-         *
-         * @param key the key to identify the flash data
-         * @return {@code true} if the flash data contains
-         * the data specified by key
-         */
-        public boolean contains(String key) {
-            return data.containsKey(key);
-        }
-
-        /**
-         * Get a data from the flash by key
-         *
-         * @param key identifies the data in the scope
-         * @return the data in the scope identified by key specified
-         */
-        public String get(String key) {
-            return data.get(key);
-        }
-
-
-        /**
-         * Remove a data from the flash scope specified by key.
-         * However if the data is already {@link #keep(String) kept}
-         * in the out buffer is not removed. to remove the data
-         * in the out buffer, use {@link #discard(String)} instead
-         *
-         * @param key identifies the data in the flash
-         * @return the flash instance
-         * @see #discard(String)
-         */
-        public Flash remove(String key) {
-            data.remove(key);
-            return this;
-        }
-
-        /**
-         * Clear the flash data. However the data already
-         * been {@link #keep() kept} in the out buffer is
-         * not cleared. To clean the out buffer, use
-         * {@link #discard()}
-         *
-         * @return the flash instance
-         * @see #discard()
-         */
-        public Flash clear() {
-            data.clear();
-            return this;
+            return super.put(key, value);
         }
 
         /**
@@ -2131,8 +2137,8 @@ public class H {
          * @see #keep()
          */
         public Flash keep(String key) {
-            if (data.containsKey(key)) {
-                out.put(key, data.get(key));
+            if (super.containsKey(key)) {
+                out.put(key, get(key));
             }
             return this;
         }
@@ -2152,9 +2158,8 @@ public class H {
             return this;
         }
 
-        @Override
-        public String toString() {
-            return data.toString();
+        public KV out() {
+            return new KV(out);
         }
 
         /**
@@ -2253,7 +2258,7 @@ public class H {
 
         private String contentType;
 
-        private String xRmtAddr;
+        private String ip;
 
         private int port = -1;
 
@@ -2397,7 +2402,7 @@ public class H {
          * Returns the domain of the request
          */
         public String domain() {
-            if (null == domain) resolveXForwarded();
+            if (null == domain) resolveIp();
             return domain;
         }
 
@@ -2405,23 +2410,23 @@ public class H {
          * Returns the port
          */
         public int port() {
-            if (-1 == port) resolveXForwarded();
+            if (-1 == port) resolveIp();
             return port;
         }
 
         /**
          * Returns remote ip address
          */
-        protected abstract String _remoteAddr();
+        protected abstract String _ip();
 
-        private void resolveXForwarded() {
+        private void resolveIp() {
             // remoteAddress
-            String rmt = _remoteAddr();
+            String rmt = _ip();
             if (!HttpConfig.isXForwardedAllowed(rmt)) {
-                xRmtAddr = rmt;
+                ip = rmt;
             }
             String s = header(X_FORWARDED_FOR);
-            xRmtAddr = S.blank(s) ? rmt : s;
+            ip = S.blank(s) ? rmt : s;
 
             // host and port
             String host = header(X_FORWARDED_HOST);
@@ -2452,11 +2457,11 @@ public class H {
             return secure() ? 80 : 443;
         }
 
-        public String remoteAddr() {
-            if (null == xRmtAddr) {
-                resolveXForwarded();
+        public String ip() {
+            if (null == ip) {
+                resolveIp();
             }
-            return xRmtAddr;
+            return ip;
         }
 
         public String userAgentStr() {
