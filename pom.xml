@@ -23,6 +23,10 @@
 - H.Request param now support multiple param values
 - Binding now take H.Request instead of Map<String, String[]> as parameter source
 - Add more methods to H.Response and H.Cookie
+
+0.2.1-SNAPSHOT
+- add FOUND_AJAX(278) as new http status
+- KV as abstract class for Session and Flash
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -31,7 +35,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2.1-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
