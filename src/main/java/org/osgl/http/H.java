@@ -2268,6 +2268,8 @@ public class H {
 
         protected volatile Reader reader;
 
+        private Map<String, Cookie> cookies = C.newMap();
+
         /**
          * Returns the HTTP method of the request
          */
@@ -2393,7 +2395,7 @@ public class H {
         }
 
         protected void _setCookie(String name, Cookie cookie) {
-            Current.setCookie(name, cookie);
+            cookies.put(name, cookie);
         }
 
         private String domain;
@@ -2481,20 +2483,20 @@ public class H {
          * @return the cookie or {@code null} if not found
          */
         public H.Cookie cookie(String name) {
-            if (!Current.cookieMapInitialized()) {
+            if (cookies.isEmpty()) {
                 _initCookieMap();
             }
-            return Current.getCookie(name);
+            return cookies.get(name);
         }
 
         /**
          * Returns all cookies of the request in Iterable
          */
-        public Iterable<H.Cookie> cookies() {
-            if (!Current.cookieMapInitialized()) {
+        public List<H.Cookie> cookies() {
+            if (cookies.isEmpty()) {
                 _initCookieMap();
             }
-            return Current.cookies();
+            return C.list(cookies.values());
         }
 
 
