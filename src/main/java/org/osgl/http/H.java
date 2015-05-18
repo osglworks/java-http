@@ -2315,6 +2315,17 @@ public class H {
         }
 
         /**
+         * Set {@link org.osgl.http.H.Format format} to the request
+         * @param fmt
+         * @return this request
+         */
+        public Request format(Format fmt) {
+            E.NPE(fmt);
+            this.fmt = fmt;
+            return this;
+        }
+
+        /**
          * Check if the request is an ajax call
          *
          * @return {@code true} if it is an ajax call
