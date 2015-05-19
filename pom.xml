@@ -31,6 +31,8 @@
 0.2.2-SNAPSHOT
 - Remove threadlocal from cookie operations on Request
 - Add format(Format) method to H.Request to allow set a format to request
+
+0.2.3-SNAPSHOT
 - Fix issue in getting expires() on H.Cookie when maxAge is less than zero
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -40,7 +42,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.2.3-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
