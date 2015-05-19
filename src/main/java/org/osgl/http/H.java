@@ -1324,7 +1324,13 @@ public class H {
         }
 
         public Date expires() {
-            return null == expires ? new Date(_.ms() + maxAge * 1000) : expires;
+            if (null != expires) {
+                return expires;
+            }
+            if (maxAge < 0) {
+                return null;
+            }
+            return new Date(_.ms() + maxAge * 1000);
         }
 
         public Cookie expires(Date expires) {
