@@ -1663,8 +1663,11 @@ public class H {
          */
         public String id() {
             if (null == id) {
-                id = UUID.randomUUID().toString();
-                put(KEY_ID, id());
+                id = data.get(KEY_ID);
+                if (null == id) {
+                    id = UUID.randomUUID().toString();
+                    put(KEY_ID, id());
+                }
             }
             return id;
         }
