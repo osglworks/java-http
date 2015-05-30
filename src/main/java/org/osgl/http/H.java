@@ -1026,6 +1026,24 @@ public class H {
                 return "application/rtf";
             }
         },
+        /**
+         * The "application/x-www-form-urlencoded" post content type
+         */
+        form_url_encoded {
+            @Override
+            public String toContentType() {
+                return "application/x-www-form-urlencoded";
+            }
+        },
+        /**
+         * The "multipart/form-data" post content type
+         */
+        form_multipart_data {
+            @Override
+            public String toContentType() {
+                return "multipart/form-data";
+            }
+        },
 
         unknown {
             @Override
@@ -1114,31 +1132,35 @@ public class H {
             return resolve_(def, accept);
         }
 
-        private static Format resolve_(Format def, String accept) {
+        private static Format resolve_(Format def, String contentType) {
             Format fmt = def;
-            if (S.blank(accept)) {
+            if (S.blank(contentType)) {
                 fmt = html;
-            } else if (accept.contains("application/xhtml") || accept.contains("text/html") || accept.startsWith("*/*")) {
+            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html") || contentType.startsWith("*/*")) {
                 fmt = html;
-            } else if (accept.contains("application/xml") || accept.contains("text/xml")) {
+            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
                 fmt = xml;
-            } else if (accept.contains("application/json") || accept.contains("text/javascript")) {
+            } else if (contentType.contains("application/json") || contentType.contains("text/javascript")) {
                 fmt = json;
-            } else if (accept.contains("text/plain")) {
+            } else if (contentType.contains("application/x-www-form-urlencoded")) {
+                fmt = form_url_encoded;
+            } else if (contentType.contains("multipart/form-data") || contentType.contains("multipart/mixed")) {
+                fmt = form_multipart_data;
+            } else if (contentType.contains("text/plain")) {
                 fmt = txt;
-            } else if (accept.contains("csv") || accept.contains("comma-separated-values")) {
+            } else if (contentType.contains("csv") || contentType.contains("comma-separated-values")) {
                 fmt = csv;
-            } else if (accept.contains("ms-excel")) {
+            } else if (contentType.contains("ms-excel")) {
                 fmt = xls;
-            } else if (accept.contains("spreadsheetml")) {
+            } else if (contentType.contains("spreadsheetml")) {
                 fmt = xlsx;
-            } else if (accept.contains("pdf")) {
+            } else if (contentType.contains("pdf")) {
                 fmt = pdf;
-            } else if (accept.contains("msword")) {
+            } else if (contentType.contains("msword")) {
                 fmt = doc;
-            } else if (accept.contains("wordprocessingml")) {
+            } else if (contentType.contains("wordprocessingml")) {
                 fmt = docx;
-            } else if (accept.contains("rtf")) {
+            } else if (contentType.contains("rtf")) {
                 fmt = rtf;
             }
 
@@ -2263,9 +2285,9 @@ public class H {
          */
         protected abstract Class<T> _impl();
 
-        private Format fmt;
+        private Format accept;
 
-        private String contentType;
+        private Format contentType;
 
         private String ip;
 
@@ -2312,25 +2334,25 @@ public class H {
         public abstract Iterable<String> headers(String name);
 
         /**
-         * Return the request {@link org.osgl.http.H.Format format}
+         * Return the request {@link org.osgl.http.H.Format accept}
          *
-         * @return the request format
+         * @return the request accept
          */
-        public Format format() {
-            if (null == fmt) {
-                resolveFormat();
+        public Format accept() {
+            if (null == accept) {
+                resolveAcceptFormat();
             }
-            return fmt;
+            return accept;
         }
 
         /**
-         * Set {@link org.osgl.http.H.Format format} to the request
+         * Set {@link org.osgl.http.H.Format accept} to the request
          * @param fmt
          * @return this request
          */
-        public Request format(Format fmt) {
+        public Request accept(Format fmt) {
             E.NPE(fmt);
-            this.fmt = fmt;
+            this.accept = fmt;
             return this;
         }
 
@@ -2521,13 +2543,13 @@ public class H {
 
 
         /**
-         * resolve the request format
+         * resolve the request accept
          *
          * @return this request instance
          */
-        private T resolveFormat() {
+        private T resolveAcceptFormat() {
             String accept = header(ACCEPT);
-            fmt = Format.resolve(accept);
+            this.accept = Format.resolve(accept);
             return (T) this;
         }
 
@@ -2565,12 +2587,12 @@ public class H {
         private void parseContentTypeAndEncoding() {
             String type = header(CONTENT_TYPE);
             if (null == type) {
-                contentType = "text/html";
+                contentType = Format.html;
                 encoding = "utf-8";
             } else {
                 String[] contentTypeParts = type.split(";");
                 String _contentType = contentTypeParts[0].trim().toLowerCase();
-                String _encoding = null;
+                String _encoding = "utf-8";
                 // check for encoding-info
                 if (contentTypeParts.length >= 2) {
                     String[] encodingInfoParts = contentTypeParts[1].split(("="));
@@ -2586,7 +2608,7 @@ public class H {
                         }
                     }
                 }
-                contentType = _contentType;
+                contentType = Format.resolve(_contentType);
                 encoding = _encoding;
             }
         }
@@ -2594,7 +2616,7 @@ public class H {
         /**
          * Return content type of the request
          */
-        public String contentType() {
+        public Format contentType() {
             if (null == contentType) {
                 parseContentTypeAndEncoding();
             }
