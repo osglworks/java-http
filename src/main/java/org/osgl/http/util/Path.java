@@ -99,7 +99,12 @@ public enum Path {
         if (isFullUrl(path)) return path;
         StringBuilder sb = S.builder(secure ? "https://" : "http://");
         sb.append(HttpConfig.domain()).append(":").append(HttpConfig.port());
-        if (!path.startsWith("//")) sb.append(HttpConfig.contextPath());
+        if (!path.startsWith("//")) {
+            String ctx = HttpConfig.contextPath();
+            if (!"/".equals(ctx)) {
+                sb.append(ctx);
+            }
+        }
         if (!path.startsWith("/")) sb.append("/");
         sb.append(path);
         return sb.toString();
@@ -123,7 +128,12 @@ public enum Path {
         if (isFullUrl(path)) return path;
         StringBuilder sb = S.builder(req.scheme()).append("://");
         sb.append(req.domain()).append(":").append(req.port());
-        if (!path.startsWith("//")) sb.append(req.contextPath());
+        if (!path.startsWith("//")) {
+            String ctx = req.contextPath();
+            if (!"/".equals(ctx)) {
+                sb.append(req.contextPath());
+            }
+        }
         if (!path.startsWith("/")) sb.append("/");
         sb.append(path);
         return sb.toString();
