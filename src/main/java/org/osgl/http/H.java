@@ -2725,7 +2725,7 @@ public class H {
          * @throws IllegalStateException if {@link #reader()} has already
          *                               been called on this request instance
          */
-        public final InputStream inputStream() throws IllegalStateException {
+        public InputStream inputStream() throws IllegalStateException {
             return state.inputStream(this);
         }
 
@@ -2750,7 +2750,7 @@ public class H {
          * @throws IllegalStateException if {@link #inputStream()} has already
          *                               been called on this request instance
          */
-        public final Reader reader() throws IllegalStateException {
+        public Reader reader() throws IllegalStateException {
             return state.reader(this);
         }
 
