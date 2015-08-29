@@ -2911,7 +2911,7 @@ public class H {
          * @throws org.osgl.exception.UnexpectedIOException if
          *                                                  there are output exception
          */
-        public final OutputStream outputStream()
+        public OutputStream outputStream()
                 throws IllegalStateException, UnexpectedIOException {
             return state.outputStream(this);
         }
@@ -2922,7 +2922,7 @@ public class H {
          * @throws java.lang.IllegalStateException          if {@link #outputStream()} is called already
          * @throws org.osgl.exception.UnexpectedIOException if there are output exception
          */
-        public final Writer writer()
+        public Writer writer()
                 throws IllegalStateException, UnexpectedIOException {
             return state.writer(this);
         }
@@ -2933,7 +2933,7 @@ public class H {
          * @throws IllegalStateException if {@link #outputStream()} is called already
          * @throws UnexpectedIOException if there are output exception
          */
-        public final PrintWriter printWriter() {
+        public PrintWriter printWriter() {
             Writer w = writer();
             if (w instanceof PrintWriter) {
                 return (PrintWriter) w;
