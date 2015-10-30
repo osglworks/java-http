@@ -39,6 +39,7 @@
 - H.Session.getId() should try to pull from data map before generating new one
 - H.Request.format() now renamed to H.Request.accept()
 - H.Request.contentType() now return H.Format type
+- H.Status now implemented with class instead of enum. And it allows to create non-standard http status instance
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -204,6 +205,24 @@
                                 <phase>prepare-package</phase>
                                 <goals>
                                     <goal>javadoc</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
                                 </goals>
                             </execution>
                         </executions>
