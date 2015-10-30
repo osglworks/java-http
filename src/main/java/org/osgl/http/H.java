@@ -70,9 +70,10 @@ public class H {
         }
     } // eof Method
 
-    public static class Status {
+    public static class Status implements Serializable, Comparable<Status> {
 
-        private static final Map<Integer, Status> cache = new LinkedHashMap<Integer, Status>();
+        private static final Map<Integer, Status> predefinedStatus = new LinkedHashMap<Integer, Status>();
+        private static final long serialVersionUID = -286619406116817809L;
 
         private int code;
 
@@ -83,7 +84,7 @@ public class H {
         private Status(int code, boolean predefined) {
             this.code = code;
             if (predefined) {
-                cache.put(code, this);
+                predefinedStatus.put(code, this);
             }
         }
 
@@ -164,9 +165,23 @@ public class H {
             return false;
         }
 
+        @Override
+        public int compareTo(Status o) {
+            return code - o.code;
+        }
+
+        protected final Object clone() throws CloneNotSupportedException {
+            throw new CloneNotSupportedException();
+        }
+
+        private Object readResolve() {
+            Status predefined = predefinedStatus.get(code);
+            return null != predefined ? predefined : this;
+        }
+
         public static Status valueOf(int n) {
             E.illegalArgumentIf(n < 100 || n > 599, "invalid http status code: %s", n);
-            Status retVal = cache.get(n);
+            Status retVal = predefinedStatus.get(n);
             if (null == retVal) {
                 retVal = new Status(n, false);
             }
@@ -180,7 +195,7 @@ public class H {
         }
 
         public static List<Status> predefined() {
-            return C.list(cache.values());
+            return C.list(predefinedStatus.values());
         }
 
         // 1xx Informational
@@ -588,6 +603,10 @@ public class H {
          */
         public static final Status NETWORK_AUTHENTICATION_REQUIRED = new Status(511);
 
+    }
+
+    public static Status status(int n) {
+        return Status.valueOf(n);
     }
 
     public static final class Header {
