@@ -40,6 +40,8 @@
 - H.Request.format() now renamed to H.Request.accept()
 - H.Request.contentType() now return H.Format type
 - H.Status now implemented with class instead of enum. And it allows to create non-standard http status instance
+- H.Format now implemented with class instead of enum. And it allows to create custom http format instances
+- H.Cookie, H.Session, H.Status, H.Format now implement Serializable interface
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
