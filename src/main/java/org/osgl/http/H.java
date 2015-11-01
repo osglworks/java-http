@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,7 +71,7 @@ public class H {
         }
     } // eof Method
 
-    public static class Status implements Serializable, Comparable<Status> {
+    public static final class Status implements Serializable, Comparable<Status> {
 
         private static final Map<Integer, Status> predefinedStatus = new LinkedHashMap<Integer, Status>();
         private static final long serialVersionUID = -286619406116817809L;
@@ -179,6 +180,15 @@ public class H {
             return null != predefined ? predefined : this;
         }
 
+        /**
+         * Alias of {@link #valueOf(int)}
+         * @param n
+         * @return
+         */
+        public static Status of(int n) {
+            return valueOf(n);
+        }
+
         public static Status valueOf(int n) {
             E.illegalArgumentIf(n < 100 || n > 599, "invalid http status code: %s", n);
             Status retVal = predefinedStatus.get(n);
@@ -186,12 +196,6 @@ public class H {
                 retVal = new Status(n, false);
             }
             return retVal;
-        }
-
-        public static Status[] values() {
-            List<Status> l = predefined();
-            Status[] sa = new Status[l.size()];
-            return l.toArray(sa);
         }
 
         public static List<Status> predefined() {
@@ -609,7 +613,10 @@ public class H {
         return Status.valueOf(n);
     }
 
-    public static final class Header {
+    public static final class Header implements Serializable {
+
+        private static final long serialVersionUID = -3987421318751857114L;
+
         public static final class Names {
             /**
              * {@code "Accept"}
@@ -961,143 +968,406 @@ public class H {
         }
     } // eof Header
 
-
     /**
      * Specify the format of the requested content type
      */
-    public static enum Format {
+    public static class Format implements Serializable {
+
+        private static final Map<String, Format> predefined = new LinkedHashMap<String, Format>();
+        private static volatile Properties types;
+
+        private int ordinal;
+        private String name;
+        private String contentType;
+
+        private Format(String name, String contentType) {
+            this(name, contentType, true);
+        }
+
+        private Format(String name, String contentType, boolean predefined) {
+            this.name = name.toLowerCase();
+            this.contentType = contentType;
+            if (predefined) {
+                Format.predefined.put(name, this);
+                this.ordinal = ordinal(name);
+            } else {
+                this.ordinal = -1;
+            }
+        }
+
+        public final String name() {
+            return name;
+        }
+
+        public final int ordinal() {
+            return ordinal;
+        }
+
+        /**
+         * Returns the content type string
+         *
+         * @return the content type string of this format
+         */
+        public String contentType() {
+            return contentType;
+        }
+
+        /**
+         * Deprecated. Please use {@link #contentType()}
+         * @return
+         */
+        @Deprecated
+        public final String toContentType() {
+            return contentType();
+        }
+
+        public final String getName() {
+            return name();
+        }
+
+        public final String getContentType() {
+            return contentType();
+        }
+
+        /**
+         * Returns the error message
+         *
+         * @param message
+         * @return the message directly
+         */
+        public String errorMessage(String message) {
+            return message;
+        }
+
+        @Override
+        public int hashCode() {
+            if (ordinal != -1) {
+                return ordinal;
+            }
+            return _.hc(name, contentType);
+        }
+
+        @Override
+        public String toString() {
+            return name();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj instanceof Format) {
+                Format that = (Format) obj;
+                return _.eq(that.name, this.name) && _.eq(that.contentType, this.contentType);
+            }
+            return false;
+        }
+
+        private Object readResolve() {
+            if (ordinal == -1) {
+                return this;
+            }
+            return predefined.get(name);
+        }
+
+        /**
+         * Deprecated. please Use {@link #predefined()}
+         * @return an array of predefined Formats
+         */
+        public static Format[] values() {
+            Format[] retVal = new Format[predefined.size()];
+            return predefined.values().toArray(retVal);
+        }
+
+        public static List<Format> predefined() {
+            return C.list(predefined.values());
+        }
+
+        public static Format of(String name) {
+            return valueOf(name);
+        }
+
+        public static Format of(String name, String contentType) {
+            return valueOf(name, contentType);
+        }
+
+        public static Format valueOf(String name) {
+            name = name.toLowerCase();
+            if (name.startsWith(".")) {
+                name = S.afterLast(name, ".");
+            }
+            return predefined.get(name.toLowerCase());
+        }
+
+        public static Format valueOf(String name, String contentType) {
+            Format retVal = valueOf(name);
+            if (null != retVal) {
+                return retVal;
+            }
+            E.illegalArgumentIf(S.blank(name), "name cannot be blank string");
+            E.illegalArgumentIf(S.blank(contentType), "content type cannot be blank string");
+            name = name.toLowerCase();
+            if (name.startsWith(".")) {
+                name = S.afterLast(name, ".");
+            }
+            return new Format(name, contentType, false);
+        }
+
+        public static Format resolve(Format def, String accept) {
+            E.NPE(def);
+            return resolve_(def, accept);
+        }
+
+        public static Format resolve(Iterable<String> accepts) {
+            return resolve(Format.HTML, accepts);
+        }
+
+        public static Format resolve(Format def, Iterable<String> accepts) {
+            Format retVal;
+            for (String s : accepts) {
+                retVal = resolve_(null, s);
+                if (null != retVal) {
+                    return retVal;
+                }
+            }
+            return _.ifNullThen(def, Format.HTML);
+        }
+
+        public static Format resolve(String... accepts) {
+            return resolve(Format.HTML, accepts);
+        }
+
+        public static Format resolve(Format def, String... accepts) {
+            Format retVal;
+            for (String s : accepts) {
+                retVal = resolve_(null, s);
+                if (null != retVal) {
+                    return retVal;
+                }
+            }
+            return _.ifNullThen(def, Format.HTML);
+        }
+
+        /**
+         * Resolve {@code Format} instance out of an http "Accept" header.
+         *
+         * @param accept the value of http "Accept" header
+         * @return an {@code Format} instance
+         */
+        public static Format resolve(String accept) {
+            return resolve_(Format.UNKNOWN, accept);
+        }
+
+
+        public static String toContentType(String fmt) {
+            Format f = predefined.get(fmt.toLowerCase());
+            if (null == f) {
+                f = HTML;
+            }
+            return f.contentType();
+        }
+
+        private static int ordinal(String s) {
+            int l = s.length(), h = 0;
+            for (int i = 0; i < l; ++i) {
+                char c = s.charAt(i);
+                h = 31 * h + c;
+            }
+            return h;
+        }
+
+        private static Format resolve_(Format def, String contentType) {
+            Format fmt = def;
+            if (S.blank(contentType)) {
+                fmt = HTML;
+            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html") || contentType.startsWith("*/*")) {
+                fmt = HTML;
+            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
+                fmt = XML;
+            } else if (contentType.contains("application/json") || contentType.contains("text/javascript")) {
+                fmt = JSON;
+            } else if (contentType.contains("application/x-www-form-urlencoded")) {
+                fmt = FORM_URL_ENCODED;
+            } else if (contentType.contains("multipart/form-data") || contentType.contains("multipart/mixed")) {
+                fmt = FORM_MULTIPART_DATA;
+            } else if (contentType.contains("text/plain")) {
+                fmt = TXT;
+            } else if (contentType.contains("csv") || contentType.contains("comma-separated-values")) {
+                fmt = CSV;
+            } else if (contentType.contains("ms-excel")) {
+                fmt = XLS;
+            } else if (contentType.contains("spreadsheetml")) {
+                fmt = XLSX;
+            } else if (contentType.contains("pdf")) {
+                fmt = PDF;
+            } else if (contentType.contains("msword")) {
+                fmt = DOC;
+            } else if (contentType.contains("wordprocessingml")) {
+                fmt = DOCX;
+            } else if (contentType.contains("rtf")) {
+                fmt = RTF;
+            }
+
+            return fmt;
+        }
+
+        static {
+            try {
+                InputStream is = H.class.getResourceAsStream("mime-types.properties");
+                Properties types = new Properties();
+                types.load(is);
+                for (Object k : types.keySet()) {
+                    String fmt = k.toString();
+                    String contentType = types.getProperty(fmt);
+                    new Format(fmt, contentType);
+                }
+            } catch (IOException e) {
+                throw E.ioException(e);
+            }
+        }
+
         /**
          * The "text/html" content format
          */
-        html {
-            @Override
-            public String toContentType() {
-                return "text/html";
-            }
-        },
+        public static final Format HTML = valueOf("html");
+        /**
+         * Deprecated, please use {@link #HTML}
+         */
+        @Deprecated
+        public static final Format html = HTML;
+
         /**
          * The "text/xml" content format
          */
-        xml {
-            @Override
-            public String toContentType() {
-                return "text/xml";
-            }
-        },
+        public static final Format XML = valueOf("xml");
+        /**
+         * Deprecated, please use {@link #XML}
+         */
+        @Deprecated
+        public static final Format xml = XML;
+
         /**
          * The "application/json" content format
          */
-        json {
-            @Override
-            public String toContentType() {
-                return "application/json";
-            }
-
-            /**
-             * Returns {@code {"error": "[error-message]"}} string
-             * @param message the error message
-             * @return the error message in JSON formatted string
-             */
+        public static final Format JSON = new Format("json", "application/json") {
             @Override
             public String errorMessage(String message) {
                 return S.fmt("{\"error\": \"%s\"}", message);
             }
-        },
+        };
+        /**
+         * Deprecated. Please use {@link #JSON}
+         */
+        @Deprecated
+        public static final Format json = JSON;
 
         /**
          * The "application/vnd.ms-excel" content format
          */
-        xls {
-            @Override
-            public String toContentType() {
-                return "application/vnd.ms-excel";
-            }
-        },
+        public static final Format XLS = valueOf("xls");
+        /**
+         * Deprecated. Please use {@link #XLS}
+         */
+        public static final Format xls = XLS;
+
         /**
          * The "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" content format
          */
-        xlsx {
-            @Override
-            public String toContentType() {
-                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            }
-        },
+        public static final Format XLSX = valueOf("xlsx");
+        /**
+         * Deprecated. Please use {@link #XLSX}
+         */
+        public static final Format xlsx = XLSX;
+
         /**
          * The "application/vnd.ms-word" content format
          */
-        doc {
-            @Override
-            public String toContentType() {
-                return "application/vnd.ms-word";
-            }
-        },
+        public static final Format DOC = valueOf("doc");
+
+        /**
+         * Deprecated. Please use {@link #DOC}
+         */
+        public static final Format doc = DOC;
+
         /**
          * The "application/vnd.openxmlformats-officedocument.wordprocessingml.document" content format
          */
-        docx {
-            @Override
-            public String toContentType() {
-                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-            }
-        },
+        public static final Format DOCX = valueOf("docx");
+
+        /**
+         * Deprecated. Please use {@link #DOCX}
+         */
+        public static final Format docx = DOCX;
+
         /**
          * The "text/csv" content format
          */
-        csv {
-            @Override
-            public String toContentType() {
-                return "text/csv";
-            }
-        },
+        public static final Format CSV = valueOf("csv");
+
+        /**
+         * Deprecated, please use {@link #CSV}
+         */
+        @Deprecated
+        public static final Format csv = CSV;
+
         /**
          * The "text/plain" content format
          */
-        txt {
-            @Override
-            public String toContentType() {
-                return "text/plain";
-            }
-        },
+        public static final Format TXT = valueOf("txt");
+
+        /**
+         * Deprecated, please use {@link #TXT}
+         */
+        @Deprecated
+        public static final Format txt = TXT;
+
         /**
          * The "application/pdf" content format
          */
-        pdf {
-            @Override
-            public String toContentType() {
-                return "application/pdf";
-            }
-        },
+        public static final Format PDF = valueOf("pdf");
+        /**
+         * Deprecated, please use {@link #PDF}
+         */
+        @Deprecated
+        public static final Format pdf = PDF;
+
         /**
          * The "application/rtf" content format
          */
-        rtf {
-            @Override
-            public String toContentType() {
-                return "application/rtf";
-            }
-        },
+        public static final Format RTF = valueOf("pdf");
         /**
-         * The "application/x-www-form-urlencoded" post content type
+         * Deprecated, please use {@link #RTF}
          */
-        form_url_encoded {
-            @Override
-            public String toContentType() {
-                return "application/x-www-form-urlencoded";
-            }
-        },
-        /**
-         * The "multipart/form-data" post content type
-         */
-        form_multipart_data {
-            @Override
-            public String toContentType() {
-                return "multipart/form-data";
-            }
-        },
+        @Deprecated
+        public static final Format rtf = RTF;
 
-        unknown {
+        /**
+         * The "application/x-www-form-urlencoded" content format
+         */
+        public static final Format FORM_URL_ENCODED = new Format("form_url_encoded", "application/x-www-form-urlencoded");
+        /**
+         * Deprecated, please use {@link #FORM_URL_ENCODED}
+         */
+        @Deprecated
+        public static final Format form_url_encoded = FORM_URL_ENCODED;
+
+        /**
+         * The "multipart/form-data" content format
+         */
+        public static final Format FORM_MULTIPART_DATA = new Format("form_multipart_data", "multipart/form-data");
+        /**
+         * Deprecated, please use {@link #FORM_MULTIPART_DATA}
+         */
+        @Deprecated
+        public static final Format form_multipart_data = FORM_MULTIPART_DATA;
+
+        /**
+         * The "unknown" content format. Use default content type: "text/html"
+         */
+        public static final Format UNKNOWN = new Format("unknown", "text/html") {
             @Override
-            public String toContentType() {
+            public String contentType() {
                 String s = Current.format();
                 if (!S.blank(s)) {
                     return toContentType(s);
@@ -1111,147 +1381,43 @@ public class H {
                 return null == s ? name() : s;
             }
         };
-
         /**
-         * Returns the content type string
-         *
-         * @return the content type string of this format
+         * Deprecated, please use {@link #UNKNOWN}
          */
-        public abstract String toContentType();
+        @Deprecated
+        public static final Format unknown = UNKNOWN;
 
-        private static volatile Properties types;
-
-        public static String toContentType(String fmt) {
-            if (null == types) {
-                synchronized (Format.class) {
-                    if (null == types) {
-                        try {
-                            InputStream is = H.class.getResourceAsStream("mime-types.properties");
-                            types = new Properties();
-                            types.load(is);
-                        } catch (IOException e) {
-                            throw E.ioException(e);
-                        }
-                    }
-                }
-            }
-            return types.getProperty(fmt, "text/html");
+        public static final class Ordinal {
+            public static final int HTML = Format.HTML.ordinal;
+            public static final int XML = Format.XML.ordinal;
+            public static final int JSON = Format.JSON.ordinal;
+            public static final int XLS = Format.XLS.ordinal;
+            public static final int XLSX = Format.XLSX.ordinal;
+            public static final int DOC = Format.DOC.ordinal;
+            public static final int DOCX = Format.DOCX.ordinal;
+            public static final int CSV = Format.CSV.ordinal;
+            public static final int TXT = Format.TXT.ordinal;
+            public static final int PDF = Format.PDF.ordinal;
+            public static final int RTF = Format.RTF.ordinal;
+            public static final int FORM_URL_ENCODED = Format.FORM_URL_ENCODED.ordinal;
+            public static final int FORM_MULTIPART_DATA = Format.FORM_MULTIPART_DATA.ordinal;
         }
+    }
 
-        public static Format of(String fmt) {
-            return valueOfIgnoreCase(fmt);
-        }
+    public static Format format(String name) {
+        return Format.valueOf(name);
+    }
 
-        public static Format valueOfIgnoreCase(String fmt) {
-            fmt = fmt.toLowerCase();
-            if (fmt.startsWith(".")) fmt = S.afterLast(fmt, ".");
-            try {
-                return valueOf(fmt);
-            } catch (Exception e) {
-                Current.format(fmt);
-                return unknown;
-            }
-        }
-
-        /**
-         * Returns the error message
-         *
-         * @param message
-         * @return the message directly
-         */
-        public String errorMessage(String message) {
-            return message;
-        }
-
-        /**
-         * Resolve {@code Format} instance out of an http "Accept" header.
-         *
-         * @param accept the value of http "Accept" header
-         * @return an {@code Format} instance
-         */
-        public static Format resolve(String accept) {
-            return resolve_(Format.unknown, accept);
-        }
-
-        public static String fmtToContentType(String fmt) {
-            return unknown.toContentType(fmt);
-        }
-
-        public static Format resolve(Format def, String accept) {
-            E.NPE(def);
-            return resolve_(def, accept);
-        }
-
-        private static Format resolve_(Format def, String contentType) {
-            Format fmt = def;
-            if (S.blank(contentType)) {
-                fmt = html;
-            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html") || contentType.startsWith("*/*")) {
-                fmt = html;
-            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
-                fmt = xml;
-            } else if (contentType.contains("application/json") || contentType.contains("text/javascript")) {
-                fmt = json;
-            } else if (contentType.contains("application/x-www-form-urlencoded")) {
-                fmt = form_url_encoded;
-            } else if (contentType.contains("multipart/form-data") || contentType.contains("multipart/mixed")) {
-                fmt = form_multipart_data;
-            } else if (contentType.contains("text/plain")) {
-                fmt = txt;
-            } else if (contentType.contains("csv") || contentType.contains("comma-separated-values")) {
-                fmt = csv;
-            } else if (contentType.contains("ms-excel")) {
-                fmt = xls;
-            } else if (contentType.contains("spreadsheetml")) {
-                fmt = xlsx;
-            } else if (contentType.contains("pdf")) {
-                fmt = pdf;
-            } else if (contentType.contains("msword")) {
-                fmt = doc;
-            } else if (contentType.contains("wordprocessingml")) {
-                fmt = docx;
-            } else if (contentType.contains("rtf")) {
-                fmt = rtf;
-            }
-
-            return fmt;
-        }
-
-        public static Format resolve(Iterable<String> accepts) {
-            return resolve(Format.html, accepts);
-        }
-
-        public static Format resolve(Format def, Iterable<String> accepts) {
-            Format retval;
-            for (String s : accepts) {
-                retval = resolve_(null, s);
-                if (null != retval) {
-                    return retval;
-                }
-            }
-            return _.ifNullThen(def, Format.html);
-        }
-
-        public static Format resolve(String... accepts) {
-            return resolve(Format.html, accepts);
-        }
-
-        public static Format resolve(Format def, String... accepts) {
-            Format retval;
-            for (String s : accepts) {
-                retval = resolve_(null, s);
-                if (null != retval) {
-                    return retval;
-                }
-            }
-            return _.ifNullThen(def, Format.html);
-        }
-    } // eof Format
+    public static Format format(String name, String contentType) {
+        return Format.valueOf(name, contentType);
+    }
 
     /**
      * The HTTP cookie
      */
-    public static class Cookie {
+    public static class Cookie implements Serializable {
+
+        private static final long serialVersionUID = 5325872881041347558L;
 
         private String name;
 
@@ -1545,7 +1711,8 @@ public class H {
 
     } // eof Cookie
 
-    public static class KV<T extends KV> {
+    public static class KV<T extends KV> implements Serializable {
+        private static final long serialVersionUID = 891504755320699989L;
         protected Map<String, String> data = C.newMap();
         private boolean dirty = false;
 
@@ -1724,6 +1891,7 @@ public class H {
          * Stores the fingerprint to the session
          */
         public static final String KEY_FINGER_PRINT = "__FP";
+        private static final long serialVersionUID = -423716328552054481L;
 
         private String id;
 
@@ -2059,6 +2227,7 @@ public class H {
 
         // used to parse flash data persisted in the cookie value
         private static final Pattern _PARSER = Session._PARSER;
+        private static final long serialVersionUID = 5609789840171619780L;
 
         /**
          * Stores the data that will be output to cookie so next time the user's request income
@@ -2637,7 +2806,7 @@ public class H {
         private void parseContentTypeAndEncoding() {
             String type = header(CONTENT_TYPE);
             if (null == type) {
-                contentType = Format.html;
+                contentType = Format.HTML;
                 encoding = "utf-8";
             } else {
                 String[] contentTypeParts = type.split(";");
@@ -3303,7 +3472,7 @@ public class H {
          * @return the response itself
          */
         public T writeText(String content) {
-            _setContentType(Format.txt.toContentType());
+            _setContentType(Format.TXT.contentType());
             return writeContent(content);
         }
 
@@ -3314,7 +3483,7 @@ public class H {
          * @return the response itself
          */
         public T writeHtml(String content) {
-            _setContentType(Format.html.toContentType());
+            _setContentType(Format.HTML.contentType());
             return writeContent(content);
         }
 
@@ -3325,7 +3494,7 @@ public class H {
          * @return the response itself
          */
         public T writeJSON(String content) {
-            _setContentType(Format.json.toContentType());
+            _setContentType(Format.JSON.contentType());
             return writeContent(content);
         }
 

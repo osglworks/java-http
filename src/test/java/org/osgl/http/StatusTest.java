@@ -86,14 +86,6 @@ public class StatusTest extends TestBase {
     }
 
     @Test
-    public void valuesArrayShallMatchPredefinedList() {
-        H.Status[] sa = H.Status.values();
-        List<H.Status> l1 = H.Status.predefined();
-        List<H.Status> l2 = C.listOf(sa);
-        eq(l1, l2);
-    }
-
-    @Test
     public void deserializePredefinedStatusShallBeManaged() throws IOException, ClassNotFoundException {
         H.Status ok = H.Status.OK;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
