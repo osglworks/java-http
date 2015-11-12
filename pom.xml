@@ -42,7 +42,9 @@
 - H.Status now implemented with class instead of enum. And it allows to create non-standard http status instance
 - H.Format now implemented with class instead of enum. And it allows to create custom http format instances
 - H.Cookie, H.Session, H.Status, H.Format now implement Serializable interface
--->
+
+0.2.5-SNAPSHOT
+- update osgl-tool to 0.7.1-SNAPSHOT-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
@@ -50,7 +52,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>0.2.4-SNAPSHOT</version>
+    <version>0.2.5-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
@@ -133,25 +135,25 @@
         <dependency>
             <groupId>org.osgl</groupId>
             <artifactId>osgl-tool</artifactId>
-            <version>0.5.0-SNAPSHOT</version>
+            <version>0.7.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.osgl</groupId>
             <artifactId>osgl-logging</artifactId>
-            <version>0.2</version>
+            <version>0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.osgl</groupId>
             <artifactId>osgl-storage</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.osgl</groupId>
             <artifactId>osgl-cache</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
