@@ -1,6 +1,6 @@
 package org.osgl.http;
 
-import org.osgl._;
+import org.osgl.$;
 import org.osgl.concurrent.ContextLocal;
 
 import java.util.Collection;
@@ -10,12 +10,12 @@ import java.util.Map;
  * Stores the Context Local variables
  */
 final class Current {
-    static ContextLocal<H.Session> _sess = _.contextLocal();
-    static ContextLocal<H.Request> _req = _.contextLocal();
-    static ContextLocal<H.Response> _resp = _.contextLocal();
-    static ContextLocal<H.Flash> _flash = _.contextLocal();
-    static ContextLocal<String> _fmt = _.contextLocal();
-    static ContextLocal<Map<String, H.Cookie>> _cookies = _.contextLocal();
+    static ContextLocal<H.Session> _sess = $.contextLocal();
+    static ContextLocal<H.Request> _req = $.contextLocal();
+    static ContextLocal<H.Response> _resp = $.contextLocal();
+    static ContextLocal<H.Flash> _flash = $.contextLocal();
+    static ContextLocal<String> _fmt = $.contextLocal();
+    static ContextLocal<Map<String, H.Cookie>> _cookies = $.contextLocal();
 
     static H.Session session() {
         return _sess.get();

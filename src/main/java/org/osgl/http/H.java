@@ -1,7 +1,7 @@
 package org.osgl.http;
 
 import org.apache.commons.codec.Charsets;
-import org.osgl._;
+import org.osgl.$;
 import org.osgl.cache.CacheService;
 import org.osgl.exception.NotAppliedException;
 import org.osgl.exception.UnexpectedIOException;
@@ -16,7 +16,6 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1044,7 +1043,7 @@ public class H {
             if (ordinal != -1) {
                 return ordinal;
             }
-            return _.hc(name, contentType);
+            return $.hc(name, contentType);
         }
 
         @Override
@@ -1059,7 +1058,7 @@ public class H {
             }
             if (obj instanceof Format) {
                 Format that = (Format) obj;
-                return _.eq(that.name, this.name) && _.eq(that.contentType, this.contentType);
+                return $.eq(that.name, this.name) && $.eq(that.contentType, this.contentType);
             }
             return false;
         }
@@ -1131,7 +1130,7 @@ public class H {
                     return retVal;
                 }
             }
-            return _.ifNullThen(def, Format.HTML);
+            return $.ifNullThen(def, Format.HTML);
         }
 
         public static Format resolve(String... accepts) {
@@ -1146,7 +1145,7 @@ public class H {
                     return retVal;
                 }
             }
-            return _.ifNullThen(def, Format.HTML);
+            return $.ifNullThen(def, Format.HTML);
         }
 
         /**
@@ -1568,13 +1567,13 @@ public class H {
             if (maxAge < 0) {
                 return null;
             }
-            return new Date(_.ms() + maxAge * 1000);
+            return new Date($.ms() + maxAge * 1000);
         }
 
         public Cookie expires(Date expires) {
             this.expires = expires;
             if (null != expires && -1 == maxAge) {
-                maxAge = (int) ((expires.getTime() - _.ms()) / 1000);
+                maxAge = (int) ((expires.getTime() - $.ms()) / 1000);
             }
             return this;
         }
@@ -1699,9 +1698,9 @@ public class H {
          */
         public static enum F {
             ;
-            public static final _.F2<Cookie, Response, Void> ADD_TO_RESPONSE = new _.F2<Cookie, Response, Void>() {
+            public static final $.F2<Cookie, Response, Void> ADD_TO_RESPONSE = new $.F2<Cookie, Response, Void>() {
                 @Override
-                public Void apply(Cookie cookie, Response response) throws NotAppliedException, _.Break {
+                public Void apply(Cookie cookie, Response response) throws NotAppliedException, $.Break {
                     response.addCookie(cookie);
                     return null;
                 }
@@ -2864,7 +2863,7 @@ public class H {
             }
 
             // preprocess to remove all blanks
-            s = S.str(s).remove(new _.F1<Character, Boolean>() {
+            s = S.str(s).remove(new $.F1<Character, Boolean>() {
                 @Override
                 public Boolean apply(Character character) {
                     char c = character;

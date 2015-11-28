@@ -1,7 +1,7 @@
 package org.osgl.http;
 
 import org.junit.Test;
-import org.osgl._;
+import org.osgl.$;
 import org.osgl.util.C;
 
 import java.io.*;
@@ -21,14 +21,14 @@ public class StatusTest extends TestBase {
 
     @Test
     public void testInformationalStatus() {
-        int n = _.random(C.range(100, 200));
+        int n = $.random(C.range(100, 200));
         H.Status s = H.status(n);
         yes(s.isInformational());
     }
 
     @Test
     public void testClientErrorStatus() {
-        int n = _.random(C.range(400, 500));
+        int n = $.random(C.range(400, 500));
         H.Status s = H.status(n);
         yes(s.isClientError());
         yes(s.isError());
@@ -36,7 +36,7 @@ public class StatusTest extends TestBase {
 
     @Test
     public void testServerErrorStatus() {
-        int n = _.random(C.range(500, 600));
+        int n = $.random(C.range(500, 600));
         H.Status s = H.status(n);
         yes(s.isServerError());
         yes(s.isError());
@@ -44,14 +44,14 @@ public class StatusTest extends TestBase {
 
     @Test
     public void testRedirectionStatus() {
-        int n = _.random(C.range(300, 400));
+        int n = $.random(C.range(300, 400));
         H.Status s = H.status(n);
         yes(s.isRedirect());
     }
 
     @Test
     public void testSuccessfulStatus() {
-        int n = _.random(C.range(200, 300));
+        int n = $.random(C.range(200, 300));
         H.Status s = H.status(n);
         yes(s.isSuccess());
     }

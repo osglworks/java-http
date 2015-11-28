@@ -2,7 +2,7 @@ package org.osgl.http;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.osgl._;
+import org.osgl.$;
 
 public class CurrentTest extends TestBase {
 
@@ -22,7 +22,7 @@ public class CurrentTest extends TestBase {
     @Test
     public void setAndGetSessionInDifferentThreads() throws Exception {
         Current.session(sess);
-        final _.Var<H.Session> bag = _.var(null);
+        final $.Var<H.Session> bag = $.var(null);
         bag.set(Current.session());
         same(sess, bag.get());
         new Thread() {
