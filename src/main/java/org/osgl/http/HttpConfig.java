@@ -94,10 +94,10 @@ public class HttpConfig {
 
     /**
      * Set allowed proxy ips for x-forwarded headers
-     * @param proxies the allowed proxy ips
+     * @param allowed the allowed proxy ips
      */
-    public static void setXForwardedAllowed(String proxies) {
-        xForwardedAllowed = proxies;
+    public static void setXForwardedAllowed(String allowed) {
+        xForwardedAllowed = allowed;
     }
 
     /**
@@ -115,6 +115,16 @@ public class HttpConfig {
      */
     public static boolean isXForwardedAllowed(String remoteAddr) {
         return isXForwardedAllowed() && (S.eq("all", xForwardedAllowed) || xForwardedAllowed.contains(remoteAddr));
+    }
+
+    private static boolean extensiveRemoteAddrResolving = false;
+
+    public static void setExtensiveRemoteAddrResolving(boolean setting) {
+        extensiveRemoteAddrResolving = setting;
+    }
+
+    public static boolean allowExtensiveRemoteAddrResolving() {
+        return extensiveRemoteAddrResolving;
     }
 
     private static boolean cookieSecure;

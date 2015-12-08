@@ -12,6 +12,8 @@ import org.osgl.util.*;
 import org.osgl.web.util.UserAgent;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -734,6 +736,14 @@ public class H {
              */
             public static final String HOST = "host";
             /**
+             * {@code "HTTP_CLIENT_IP"}
+             */
+            public static final String HTTP_CLIENT_IP = "http_client_ip";
+            /**
+             * {@code "HTTP_X_FORWARDED_FOR"}
+             */
+            public static final String HTTP_X_FORWARDED_FOR = "http_x_forwarded_for";
+            /**
              * {@code "If-Match"}
              */
             public static final String IF_MATCH = "if-match";
@@ -782,6 +792,10 @@ public class H {
              */
             public static final String PROXY_AUTHORIZATION = "proxy-authorization";
             /**
+             * {@code "Proxy-Client-IP"}
+             */
+            public static final String PROXY_CLIENT_IP = "proxy-client-ip";
+            /**
              * {@code "Proxy-Connection"}
              */
             public static final String PROXY_CONNECTION = "proxy_connection";
@@ -797,6 +811,11 @@ public class H {
              * {@code "Retry-After"}
              */
             public static final String RETRY_AFTER = "retry-after";
+            /**
+             * the header used to put the real ip by load balancers like F5
+             * {@code "rlnclientipaddr"}
+             */
+            public static final String RLNCLIENTIPADDR = "rlnclientipaddr";
             /**
              * {@code "sec-websocket-Key1"}
              */
@@ -885,6 +904,10 @@ public class H {
              * {@code "WebSocket-Protocol"}
              */
             public static final String WEBSOCKET_PROTOCOL = "websocket-protocol";
+            /**
+             * {@code "WL-Proxy-Client-IP"}
+             */
+            public static final String WL_PROXY_CLIENT_IP = "wl-proxy-client-ip";
             /**
              * {@code "WWW-Authenticate"}
              */
@@ -2664,7 +2687,7 @@ public class H {
          * Returns the domain of the request
          */
         public String domain() {
-            if (null == domain) resolveIp();
+            if (null == domain) resolveHostPort();
             return domain;
         }
 
@@ -2672,7 +2695,7 @@ public class H {
          * Returns the port
          */
         public int port() {
-            if (-1 == port) resolveIp();
+            if (-1 == port) resolveHostPort();
             return port;
         }
 
@@ -2681,16 +2704,50 @@ public class H {
          */
         protected abstract String _ip();
 
+        private static boolean ipOk(String s) {
+            return S.notEmpty(s) && S.neq("unknown", s);
+        }
+
         private void resolveIp() {
-            // remoteAddress
             String rmt = _ip();
             if (!HttpConfig.isXForwardedAllowed(rmt)) {
                 ip = rmt;
+                return;
             }
             String s = header(X_FORWARDED_FOR);
-            ip = S.blank(s) ? rmt : s;
+            if (!ipOk(s)) {
+                if (HttpConfig.allowExtensiveRemoteAddrResolving()) {
+                    s = header(PROXY_CLIENT_IP);
+                    if (!ipOk(s)) {
+                        s = header(WL_PROXY_CLIENT_IP);
+                        if (!ipOk(s)) {
+                            s = header(HTTP_CLIENT_IP);
+                            if (!ipOk(s)) {
+                                s = header(HTTP_X_FORWARDED_FOR);
+                                if (!ipOk(s)) {
+                                    ip = rmt;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    ip = rmt;
+                    return;
+                }
+            }
 
-            // host and port
+            // in case there are multiple ip addresses (due to cascade proxies), then use the first one.
+            if (s.length() > 15) {
+                int pos = s.indexOf(",");
+                if (pos > 0) {
+                    s = s.substring(0, pos);
+                }
+            }
+            ip = s;
+        }
+
+        private void resolveHostPort() {
             String host = header(X_FORWARDED_HOST);
             if (S.empty(host)) {
                 host = header(HOST);
