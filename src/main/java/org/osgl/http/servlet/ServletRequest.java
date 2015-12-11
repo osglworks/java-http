@@ -1,5 +1,6 @@
 package org.osgl.http.servlet;
 
+import org.osgl.$;
 import org.osgl.http.H;
 import org.osgl.util.C;
 import org.osgl.util.E;
@@ -11,7 +12,9 @@ import java.io.InputStream;
 import java.io.Reader;
 
 public class ServletRequest extends H.Request {
-    @Override
+
+    private H.Method methodOverride;
+
     protected Class _impl() {
         return ServletRequest.class;
     }
@@ -76,7 +79,13 @@ public class ServletRequest extends H.Request {
 
     @Override
     public H.Method method() {
-        return H.Method.valueOfIgnoreCase(r.getMethod());
+        return null == methodOverride ? H.Method.valueOfIgnoreCase(r.getMethod()) : methodOverride;
+    }
+
+    @Override
+    public H.Request method(H.Method method) {
+        this.methodOverride = $.NPE(method);
+        return this;
     }
 
     @Override

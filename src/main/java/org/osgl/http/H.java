@@ -2548,6 +2548,14 @@ public class H {
         public abstract Method method();
 
         /**
+         * Set the Http method on this request. Used by framework to "override"
+         * a HTTP method
+         * @param method the method to set
+         * @return this request instance
+         */
+        public abstract Request method(Method method);
+
+        /**
          * Returns the header content by name. If there are
          * multiple headers with the same name, then the first
          * one is returned. If there is no header has the name
