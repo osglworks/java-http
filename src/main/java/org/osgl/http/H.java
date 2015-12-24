@@ -1285,6 +1285,21 @@ public class H {
         public static final Format json = JSON;
 
         /**
+         * The "text/css" content format
+         */
+        public static final Format CSS = new Format("css", "text/css");
+
+        /**
+         * The "application/javascript" content format
+         */
+        public static final Format JAVASCRIPT = new Format("javascript", "application/javascript") {
+            @Override
+            public String errorMessage(String message) {
+                return "alert(" + message + ");";
+            }
+        };
+
+        /**
          * The "application/vnd.ms-excel" content format
          */
         public static final Format XLS = valueOf("xls");
