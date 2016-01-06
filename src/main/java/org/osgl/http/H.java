@@ -1036,7 +1036,7 @@ public class H {
 
         /**
          * Deprecated. Please use {@link #contentType()}
-         * @return
+         * @return the content type string of the format
          */
         @Deprecated
         public final String toContentType() {
