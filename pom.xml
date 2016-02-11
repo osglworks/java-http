@@ -47,7 +47,7 @@
 - update osgl-tool to 0.7.1-SNAPSHOT
 
 0.3.0-SNAPSHOT
-- update to osgl-tool 0.8
+- update to osgl-tool 0.9
 - allow parsing remote address aggressively
 - Add H.Format.CSS and H.Format.JAVASCRIPT content type
 -->
@@ -141,7 +141,7 @@
         <dependency>
             <groupId>org.osgl</groupId>
             <artifactId>osgl-tool</artifactId>
-            <version>0.8.0-SNAPSHOT</version>
+            <version>0.9.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
