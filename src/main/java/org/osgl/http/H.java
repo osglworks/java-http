@@ -2568,7 +2568,7 @@ public class H {
          * @param method the method to set
          * @return this request instance
          */
-        public abstract Request method(Method method);
+        public abstract T method(Method method);
 
         /**
          * Returns the header content by name. If there are
@@ -2614,10 +2614,10 @@ public class H {
          * @param fmt
          * @return this request
          */
-        public Request accept(Format fmt) {
+        public T accept(Format fmt) {
             E.NPE(fmt);
             this.accept = fmt;
-            return this;
+            return me();
         }
 
         /**
@@ -3112,6 +3112,10 @@ public class H {
         public String password() {
             if (null == password) parseAuthorization();
             return password;
+        }
+
+        protected final T me() {
+            return (T) this;
         }
 
         /**

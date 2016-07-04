@@ -83,7 +83,7 @@ public class ServletRequest extends H.Request {
     }
 
     @Override
-    public H.Request method(H.Method method) {
+    public ServletRequest method(H.Method method) {
         this.methodOverride = $.NPE(method);
         return this;
     }
