@@ -71,9 +71,9 @@
     </parent>
 
     <scm>
-        <connection>scm:git:git://github.com/greenlaw110/java-http.git</connection>
-        <developerConnection>scm:git:git@github.com:greenlaw110/java-http.git</developerConnection>
-        <url>git://github.com/greenlaw110/java-http.git</url>
+        <connection>scm:git:git://github.com/osglworks/java-http.git</connection>
+        <developerConnection>scm:git:git@github.com:osglworks/java-http.git</developerConnection>
+        <url>git://github.com/osglworks/java-http.git</url>
     </scm>
 
     <properties>
