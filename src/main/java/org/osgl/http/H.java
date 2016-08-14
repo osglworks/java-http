@@ -2122,7 +2122,7 @@ public class H {
          * @see #cache(String, Object)
          */
         public <T> T cached(String key) {
-            return cs.get(k(key));
+            return cs().get(k(key));
         }
 
         /**
@@ -2138,7 +2138,7 @@ public class H {
          * @see #cache(String, Object)
          */
         public <T> T cached(String key, Class<T> clz) {
-            return cs.get(k(key));
+            return cs().get(k(key));
         }
         // ------- eof cache operations ------
 
