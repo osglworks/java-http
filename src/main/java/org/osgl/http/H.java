@@ -3567,6 +3567,21 @@ public class H {
         public abstract T addHeader(String name, String value);
 
         /**
+         * Adds a response header with given name and value if the header
+         * with the same name has not been added yet
+         * @param name the name of the header
+         * @param value the header value
+         * @return this response itself
+         * @see #addHeader(String, String)
+         */
+        public T addHeaderIfNotAdded(String name, String value) {
+            if (!containsHeader(name)) {
+                addHeader(name, value);
+            }
+            return (T) this;
+        }
+
+        /**
          * Write a string to the response
          *
          * @param s the string to write to the response
