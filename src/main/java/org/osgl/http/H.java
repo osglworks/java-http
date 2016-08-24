@@ -644,6 +644,39 @@ public class H {
              */
             public static final String ACCEPT_PATCH = "accept-patch";
             /**
+             * {@code "Access-Control-Allow-Origin"}
+             */
+            public static final String ACCESS_CONTROL_ALLOW_ORIGIN = "access-control-allow-origin";
+            /**
+             * {@code "Access-Control-Allow-Methods"}
+             */
+            public static final String ACCESS_CONTROL_ALLOW_METHODS = "access-control-allow-methods";
+            /**
+             * {@code "Access-Control-Allow-Headers"}
+             */
+            public static final String ACCESS_CONTROL_ALLOW_HEADERS = "access-control-allow-headers";
+            /**
+             * {@code "Access-Control-Allow-Credentials"}
+             */
+            public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS = "access-control-allow-Credentials";
+            /**
+             * {@code "Access-Control-Expose-Headers"}
+             */
+            public static final String ACCESS_CONTROL_EXPOSE_HEADERS = "access-control-expose-headers";
+            /**
+             * {@code "Access-Control-Max-Age"}
+             */
+            public static final String ACCESS_CONTROL_MAX_AGE = "access-control-max-age";
+            /**
+             * {@code "Access-Control-Request-Method"}
+             */
+            public static final String ACCESS_CONTROL_REQUEST_METHOD = "access-control-request-method";
+            /**
+             * {@code "Access-Control-Request-Headers"}
+             */
+            public static final String ACCESS_CONTROL_REQUEST_HEADERS = "access-control-request-headers";
+
+            /**
              * {@code "Age"}
              */
             public static final String AGE = "age";
