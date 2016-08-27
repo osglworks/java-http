@@ -31,14 +31,8 @@ public class H {
 
     protected static final Logger logger = L.get(Http.class);
 
-    public static enum Method {
+    public enum Method {
         GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT;
-
-        private String id;
-
-        private Method() {
-            id = name().intern();
-        }
 
         private static EnumSet<Method> unsafeMethods = EnumSet.of(POST, DELETE, PUT, PATCH);
         private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, DELETE);
@@ -3447,7 +3441,6 @@ public class H {
          * @throws org.osgl.exception.UnexpectedIOException If an input or output exception occurs
          * @throws IllegalStateException                    If the response was committed
          */
-
         public abstract T sendError(int sc, String msg);
 
         /**
