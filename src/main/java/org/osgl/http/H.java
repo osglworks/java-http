@@ -978,6 +978,10 @@ public class H {
              * {@code "X-Url-Scheme"}
              */
             public static final String X_URL_SCHEME = "x-url-scheme";
+            /**
+             * {@code "X-Xsrf-Token"}
+             */
+            public static final String X_XSRF_TOKEN = "x-xsrf-token";
 
             private Names() {
                 super();
