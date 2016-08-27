@@ -2582,11 +2582,32 @@ public class H {
 
         private State state = State.NONE;
 
+        private Object context;
+
         protected volatile InputStream inputStream;
 
         protected volatile Reader reader;
 
         private Map<String, Cookie> cookies = C.newMap();
+
+        /**
+         * Attach a context object to the request instance
+         * @param context the context object
+         * @return the request instance itself
+         */
+        public T context(Object context) {
+            this.context = $.notNull(context);
+            return me();
+        }
+
+        /**
+         * Get the context object from the request instance
+         * @param <CONTEXT> the generic type of the context object
+         * @return the context object
+         */
+        public <CONTEXT> CONTEXT context() {
+            return (CONTEXT) context;
+        }
 
         /**
          * Returns the HTTP method of the request
@@ -3208,7 +3229,27 @@ public class H {
         private State state = State.NONE;
         protected volatile OutputStream outputStream;
         protected volatile Writer writer;
+        private Object context;
 
+
+        /**
+         * Attach a context object to the response instance
+         * @param context the context object
+         * @return the response instance itself
+         */
+        public T context(Object context) {
+            this.context = $.notNull(context);
+            return (T)this;
+        }
+
+        /**
+         * Get the context object from the response instance
+         * @param <CONTEXT> the generic type of the context object
+         * @return the context object
+         */
+        public <CONTEXT> CONTEXT context() {
+            return (CONTEXT) context;
+        }
         /**
          * Returns the class of the implementation. Not to be used
          * by application
