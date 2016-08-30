@@ -3007,19 +3007,17 @@ public class H {
             // parse things like "da,en-gb;q=0.8,en;q=0.7"
             String[] sa = s.split(",");
             for (String s0 : sa) {
-                // just ignore q=xx
-                s0 = S.beforeFirst(s0, ";");
-                String[] sa1 = s0.split("-");
-                String lang = sa1[0];
-                String country = "";
-                String variant = "";
-                if (sa1.length > 1) {
-                    country = sa[1];
+                String[] arr = s0.trim().split(";");
+
+                //Parse the locale
+                Locale locale;
+                String[] l = arr[0].split("-");
+                switch(l.length){
+                    case 2: locale = new Locale(l[0], l[1]); break;
+                    case 3: locale = new Locale(l[0], l[1], l[2]); break;
+                    default: locale = new Locale(l[0]); break;
                 }
-                if (sa1.length > 2) {
-                    variant = sa[2];
-                }
-                lb.add(new Locale(lang, country, variant));
+                lb.add(locale);
             }
             if (lb.isEmpty()) lb.add(HttpConfig.defaultLocale());
 
