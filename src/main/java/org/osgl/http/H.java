@@ -781,7 +781,7 @@ public class H {
             /**
              * {@code "If-None-Match"}
              */
-            public static final String IF_NONE_MATCH = "if-none-natch";
+            public static final String IF_NONE_MATCH = "if-none-match";
             /**
              * {@code "If-Range"}
              */
