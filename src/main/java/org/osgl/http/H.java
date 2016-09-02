@@ -2584,6 +2584,8 @@ public class H {
 
         private Object context;
 
+        private String etag;
+
         protected volatile InputStream inputStream;
 
         protected volatile Reader reader;
@@ -2670,6 +2672,17 @@ public class H {
             E.NPE(fmt);
             this.accept = fmt;
             return me();
+        }
+
+        public String etag() {
+            if (null == etag) {
+                etag = method().safe() ? header(IF_NONE_MATCH) : header(IF_MATCH);
+            }
+            return etag;
+        }
+
+        public boolean etagMatches(String etag) {
+            return S.eq(this.etag(), etag);
         }
 
         /**
@@ -3412,6 +3425,16 @@ public class H {
          */
         public T initContentType(String type) {
             return (null == contentType) ? contentType(type) : (T) this;
+        }
+
+        /**
+         * Set the etag header
+         * @param etag the etag content
+         * @return this response
+         */
+        public T etag(String etag) {
+            header(ETAG, etag);
+            return (T)this;
         }
 
         /**
