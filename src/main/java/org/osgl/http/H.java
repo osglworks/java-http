@@ -2848,7 +2848,6 @@ public class H {
                         port = Integer.parseInt(fs.afterFirst(':').toString());
                     } catch (NumberFormatException e) {
                         port = defPort();
-                        logger.error(e, "Error parsing port number: %s", S.after(host, ":"));
                     }
                 } else {
                     domain = host;
@@ -2861,7 +2860,7 @@ public class H {
         }
 
         private int defPort() {
-            return secure() ? 80 : 443;
+            return secure() ? 443 : 80;
         }
 
         public String ip() {
