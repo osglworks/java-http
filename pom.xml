@@ -15,25 +15,16 @@
   ~ under the License.
   -->
 <!-- history 
-0.1-SNAPSHOT 
-- base version when history log started
+0.3.1-SNAPSHOT
+- Add secure configuration to HttpConfig
 
-0.2-SNAPSHOT 
-- upgrade to osgl-tool 0.4-SNAPSHOT
-- H.Request param now support multiple param values
-- Binding now take H.Request instead of Map<String, String[]> as parameter source
-- Add more methods to H.Response and H.Cookie
+0.3.0-SNAPSHOT
+- update to osgl-tool 0.9
+- allow parsing remote address aggressively
+- Add H.Format.CSS and H.Format.JAVASCRIPT content type
 
-0.2.1-SNAPSHOT
-- add FOUND_AJAX(278) as new http status
-- KV as abstract class for Session and Flash
-
-0.2.2-SNAPSHOT
-- Remove threadlocal from cookie operations on Request
-- Add accept(Format) method to H.Request to allow set a accept to request
-
-0.2.3-SNAPSHOT
-- Fix issue in getting expires() on H.Cookie when maxAge is less than zero
+0.2.5-SNAPSHOT
+- update osgl-tool to 0.7.1-SNAPSHOT
 
 0.2.4-SNAPSHOT
 - H.Session.getId() should try to pull from data map before generating new one
@@ -43,13 +34,26 @@
 - H.Format now implemented with class instead of enum. And it allows to create custom http format instances
 - H.Cookie, H.Session, H.Status, H.Format now implement Serializable interface
 
-0.2.5-SNAPSHOT
-- update osgl-tool to 0.7.1-SNAPSHOT
+0.2.3-SNAPSHOT
+- Fix issue in getting expires() on H.Cookie when maxAge is less than zero
 
-0.3.0-SNAPSHOT
-- update to osgl-tool 0.9
-- allow parsing remote address aggressively
-- Add H.Format.CSS and H.Format.JAVASCRIPT content type
+0.2.2-SNAPSHOT
+- Remove threadlocal from cookie operations on Request
+- Add accept(Format) method to H.Request to allow set a accept to request
+
+0.2.1-SNAPSHOT
+- add FOUND_AJAX(278) as new http status
+- KV as abstract class for Session and Flash
+
+0.2-SNAPSHOT
+- upgrade to osgl-tool 0.4-SNAPSHOT
+- H.Request param now support multiple param values
+- Binding now take H.Request instead of Map<String, String[]> as parameter source
+- Add more methods to H.Response and H.Cookie
+
+0.1-SNAPSHOT
+- base version when history log started
+
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -58,7 +62,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.3.1-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>

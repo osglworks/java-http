@@ -87,9 +87,21 @@ public enum Path {
     }
 
     /**
+     * Returns the full url form of a url path which starts
+     * with scheme. The scheme, domain, port, context path
+     * info are get from {@link HttpConfig}
+     *
+     * @param path the url path
+     * @return the full url of the path
+     */
+    public static String fullUrl(String path) {
+        return fullUrl(path, HttpConfig.secure());
+    }
+
+    /**
      * Return the full url form of a url path which starts with
      * scheme. The domain, port and context path info are get from
-     * {@link org.osgl.http.HttpConfig}
+     * {@link HttpConfig}
      *
      * @param path the path to be normalized
      * @param secure is the full url needs to be secure or no
@@ -98,7 +110,7 @@ public enum Path {
     public static String fullUrl(String path, boolean secure) {
         if (isFullUrl(path)) return path;
         StringBuilder sb = S.builder(secure ? "https://" : "http://");
-        sb.append(HttpConfig.domain()).append(":").append(HttpConfig.port());
+        sb.append(HttpConfig.domain()).append(":").append(secure ? HttpConfig.securePort() : HttpConfig.nonSecurePort());
         if (!path.startsWith("//")) {
             String ctx = HttpConfig.contextPath();
             if (!"/".equals(ctx)) {

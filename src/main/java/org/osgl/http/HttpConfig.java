@@ -46,15 +46,19 @@ public class HttpConfig {
         return domain;
     }
 
-    private static int port;
+    private static int nonSecurePort;
 
-    public static void port(int port) {
+    public static void nonSecurePort(int port) {
         E.illegalArgumentIf(port < 1 || port > 65535, "port specified is out of range: %s", port);
-        HttpConfig.port = port;
+        HttpConfig.nonSecurePort = port;
+    }
+
+    public static int nonSecurePort() {
+        return 0 < nonSecurePort ? nonSecurePort : 80;
     }
 
     public static int port() {
-        return 0 < port ? port : 80;
+        return secure ? securePort : nonSecurePort;
     }
 
     public static int securePort;
@@ -66,6 +70,16 @@ public class HttpConfig {
 
     public static int securePort() {
         return securePort;
+    }
+
+    public static boolean secure;
+
+    public static void secure(boolean setting) {
+        HttpConfig.secure = setting;
+    }
+
+    public static boolean secure() {
+        return HttpConfig.secure;
     }
 
     public static String ctx;
