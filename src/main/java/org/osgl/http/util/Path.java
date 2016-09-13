@@ -113,7 +113,7 @@ public enum Path {
         sb.append(HttpConfig.domain()).append(":").append(secure ? HttpConfig.securePort() : HttpConfig.nonSecurePort());
         if (!path.startsWith("//")) {
             String ctx = HttpConfig.contextPath();
-            if (!"/".equals(ctx)) {
+            if (S.notBlank(ctx) && !"/".equals(ctx)) {
                 sb.append(ctx);
             }
         }
