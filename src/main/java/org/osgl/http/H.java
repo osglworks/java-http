@@ -13,8 +13,10 @@ import org.osgl.web.util.UserAgent;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -3426,6 +3428,36 @@ public class H {
             return (null == contentType) ? contentType(type) : (T) this;
         }
 
+        public T contentDisposition(String filename, boolean inline) {
+            final String type = inline ? "inline" : "attachment";
+            if (S.blank(filename)) {
+                header(CONTENT_DISPOSITION, type);
+            } else {
+                if(canAsciiEncode(filename)) {
+                    String contentDisposition = "%s; filename=\"%s\"";
+                    header(CONTENT_DISPOSITION, S.fmt(contentDisposition, type, filename));
+                } else {
+                    final String encoding = characterEncoding();
+                    String contentDisposition = "%1$s; filename*="+encoding+"''%2$s; filename=\"%2$s\"";
+                    try {
+                        header(CONTENT_DISPOSITION, S.fmt(contentDisposition, type, URLEncoder.encode(filename, encoding)));
+                    } catch (UnsupportedEncodingException e) {
+                        throw E.encodingException(e);
+                    }
+                }
+            }
+            return (T) this;
+        }
+
+        /**
+         * This method will prepare response header for file download.
+         * @param filename the filename
+         * @return this response instance
+         */
+        public T prepareDownload(String filename) {
+            return contentDisposition(filename, false);
+        }
+
         /**
          * Set the etag header
          * @param etag the etag content
@@ -3713,6 +3745,12 @@ public class H {
         public static <T extends Response> void current(T response) {
             Current.response(response);
         }
+
+        private static boolean canAsciiEncode(String string) {
+            CharsetEncoder asciiEncoder = Charset.forName("US-ASCII").newEncoder();
+            return asciiEncoder.canEncode(string);
+        }
+
 
         private enum State {
             NONE,

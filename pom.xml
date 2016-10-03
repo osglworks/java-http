@@ -17,6 +17,7 @@
 <!-- history 
 0.3.1-SNAPSHOT
 - Add secure configuration to HttpConfig
+- Add H.Response.prepareDownload(String, String) method
 
 0.3.0-SNAPSHOT
 - update to osgl-tool 0.9
