@@ -1084,6 +1084,10 @@ public class H {
             return contentType();
         }
 
+        public boolean isText() {
+            return JSON == this || contentType.startsWith("text/") || S.eq("application/json", contentType);
+        }
+
         /**
          * Returns the error message
          *
