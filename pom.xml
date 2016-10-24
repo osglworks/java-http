@@ -14,10 +14,11 @@
   ~ License for the specific language governing permissions and limitations
   ~ under the License.
   -->
-<!-- history 
+<!-- history
 0.3.1-SNAPSHOT
 - Add secure configuration to HttpConfig
 - Add H.Response.prepareDownload(String, String) method
+- Add H.Format.isText() method
 
 0.3.0-SNAPSHOT
 - update to osgl-tool 0.9
