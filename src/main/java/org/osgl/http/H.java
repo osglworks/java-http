@@ -2592,6 +2592,8 @@ public class H {
 
         private String etag;
 
+        private String referer;
+
         protected volatile InputStream inputStream;
 
         protected volatile Reader reader;
@@ -2678,6 +2680,29 @@ public class H {
             E.NPE(fmt);
             this.accept = fmt;
             return me();
+        }
+
+        /**
+         * Return the "referer(sic)" header value
+         * @return the http referrer
+         */
+        public String referrer() {
+            if (null == referer) {
+                referer = header(REFERER);
+                if (null == referer) {
+                    referer = "";
+                }
+            }
+            return referer;
+        }
+
+        /**
+         * This method is an alias of {@link #referer} which follows the
+         * HTTP misspelling header name `referer`
+         * @return the http referer
+         */
+        public String referer() {
+            return referrer();
         }
 
         public String etag() {

@@ -19,6 +19,7 @@
 - Add secure configuration to HttpConfig
 - Add H.Response.prepareDownload(String, String) method
 - Add H.Format.isText() method
+- Add H.Request.referer() and H.Request.referrer() methods
 
 0.3.0-SNAPSHOT
 - update to osgl-tool 0.9
