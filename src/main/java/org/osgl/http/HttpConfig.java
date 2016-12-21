@@ -116,7 +116,7 @@ public class HttpConfig {
 
     /**
      * Does the app support x-forwarded headers
-     * @return
+     * @return is x-forwarded header supported
      */
     public static boolean isXForwardedAllowed() {
         return S.notBlank(xForwardedAllowed);
@@ -126,6 +126,7 @@ public class HttpConfig {
      * Does the remote address is allowed for x-forwarded header
      *
      * @param remoteAddr the remote address
+     * @return is the remote address allowed for x-forwarded header
      */
     public static boolean isXForwardedAllowed(String remoteAddr) {
         return isXForwardedAllowed() && (S.eq("all", xForwardedAllowed) || xForwardedAllowed.contains(remoteAddr));
@@ -145,6 +146,7 @@ public class HttpConfig {
 
     /**
      * Returns the cookie secure configuration
+     * @return the cookie secure setting
      */
     public static boolean isCookieSecure() {
         return cookieSecure;
@@ -153,7 +155,7 @@ public class HttpConfig {
     /**
      * Configure cookie secure
      *
-     * @param secure
+     * @param secure cookie secure
      */
     public static void setCookieSecure(boolean secure) {
         cookieSecure = secure;

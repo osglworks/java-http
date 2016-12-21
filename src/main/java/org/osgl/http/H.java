@@ -43,6 +43,7 @@ public class H {
          * Returns if this http method is safe, meaning it
          * won't change the state of the server
          *
+         * @return true if the method is safe or false otherwise
          * @see #unsafe()
          */
         public boolean safe() {
@@ -53,6 +54,7 @@ public class H {
          * Returns if this http method is unsafe, meaning
          * it will change the state of the server
          *
+         * @return true if the method is unsafe or false otherwise
          * @see #safe()
          */
         public boolean unsafe() {
@@ -88,6 +90,7 @@ public class H {
 
         /**
          * Returns the int value of the status
+         * @return status code
          */
         public final int code() {
             return code;
@@ -96,6 +99,7 @@ public class H {
         /**
          * Returns {@code true} if the status is either a {@link #isClientError() client error}
          * or {@link #isServerError() server error}
+         * @return if this status error
          */
         public boolean isError() {
             return isClientError() || isServerError();
@@ -103,6 +107,7 @@ public class H {
 
         /**
          * Returns true if the status is server error (5xx)
+         * @return if this status server error
          */
         public boolean isServerError() {
             return code / 100 == 5;
@@ -110,6 +115,7 @@ public class H {
 
         /**
          * Returns true if the status is client error (4xx)
+         * @return if this status client error
          */
         public boolean isClientError() {
             return code / 100 == 4;
@@ -117,6 +123,7 @@ public class H {
 
         /**
          * Returns true if the status is success series (2xx)
+         * @return if this status success series
          */
         public boolean isSuccess() {
             return code / 100 == 2;
@@ -124,6 +131,7 @@ public class H {
 
         /**
          * Returns true if the status is redirect series (3xx)
+         * @return if this status redirect series
          */
         public boolean isRedirect() {
             return code / 100 == 3;
@@ -131,6 +139,7 @@ public class H {
 
         /**
          * Returns true if the status is informational series (1xx)
+         * @return is this status informational series
          */
         public boolean isInformational() {
             return code / 100 == 1;
@@ -179,8 +188,8 @@ public class H {
 
         /**
          * Alias of {@link #valueOf(int)}
-         * @param n
-         * @return
+         * @param n the status number
+         * @return the status instance
          */
         public static Status of(int n) {
             return valueOf(n);
@@ -291,8 +300,9 @@ public class H {
         public static final Status IM_USED = new Status(226);
 
         /**
-         * {@code 278} Faked http status to handle redirection on ajax case
-         * @see <a href="http://stackoverflow.com/questions/199099/how-to-manage-a-redirect-request-after-a-jquery-ajax-call">this</a> stackoverflow
+         * {@code 278} - Faked http status to handle redirection on ajax case.
+         *
+         * @see <a href="http://stackoverflow.com/questions/199099/how-to-manage-a-redirect-request-after-a-jquery-ajax-call">this stackoverflow</a>
          */
         public static final Status FOUND_AJAX = new Status(278);
 
@@ -1091,7 +1101,7 @@ public class H {
         /**
          * Returns the error message
          *
-         * @param message
+         * @param message the message
          * @return the message directly
          */
         public String errorMessage(String message) {
@@ -1536,6 +1546,8 @@ public class H {
         /**
          * Returns the name of the cookie. Cookie name
          * cannot be changed after created
+         *
+         * @return the name
          */
         public String name() {
             return name;
@@ -1543,6 +1555,7 @@ public class H {
 
         /**
          * Returns the value of the cookie
+         * @return the value
          */
         public String value() {
             return value;
@@ -1561,6 +1574,8 @@ public class H {
 
         /**
          * Returns the domain of the cookie
+         *
+         * @return domain
          */
         public String domain() {
             return domain;
@@ -1582,6 +1597,7 @@ public class H {
          * to which the browser returns this cookie. The
          * cookie is visible to all subpaths on the server.
          *
+         * @return the path
          * @see #path(String)
          */
         public String path() {
@@ -1591,10 +1607,10 @@ public class H {
         /**
          * Specifies a path for the cookie
          * to which the client should return the cookie.
-         * <p/>
+         * 
          * <p>The cookie is visible to all the pages in the directory
          * you specify, and all the pages in that directory's subdirectories.
-         * <p/>
+         * 
          * <p>Consult RFC 2109 (available on the Internet) for more
          * information on setting path names for cookies.
          *
@@ -1611,6 +1627,8 @@ public class H {
          * Returns the maximum age of cookie specified in seconds. If
          * maxAge is set to {@code -1} then the cookie will persist until
          * browser shutdown
+         *
+         * @return the max age of the cookie
          */
         public int maxAge() {
             return maxAge;
@@ -1622,12 +1640,14 @@ public class H {
          * after that many seconds have passed. Note that the value is
          * the <i>maximum</i> age when the cookie will expire, not the cookie's
          * current age.
-         * <p/>
+         * 
          * <p>A negative value means
          * that the cookie is not stored persistently and will be deleted
          * when the Web browser exits. A zero value causes the cookie
          * to be deleted.
          *
+         * @param maxAge the max age to be set
+         * @return this instance
          * @see #maxAge()
          */
         public Cookie maxAge(int maxAge) {
@@ -1658,6 +1678,7 @@ public class H {
          * only over a secure protocol, or <code>false</code> if the
          * browser can send cookies using any protocol.
          *
+         * @return if the cookie is secure
          * @see #secure(boolean)
          */
         public boolean secure() {
@@ -1667,7 +1688,7 @@ public class H {
         /**
          * Indicates to the browser whether the cookie should only be sent
          * using a secure protocol, such as HTTPS or SSL.
-         * <p/>
+         * 
          * <p>The default value is <code>false</code>.
          *
          * @param secure the cookie secure requirement
@@ -1697,15 +1718,16 @@ public class H {
         /**
          * Sets the version of the cookie protocol that this Cookie complies
          * with.
-         * <p/>
+         * 
          * <p>Version 0 complies with the original Netscape cookie
          * specification. Version 1 complies with RFC 2109.
-         * <p/>
+         * 
          * <p>Since RFC 2109 is still somewhat new, consider
          * version 1 as experimental; do not use it yet on production sites.
          *
          * @param v 0 if the cookie should comply with the original Netscape
          *          specification; 1 if the cookie should comply with RFC 2109
+         * @return this cookie instance
          * @see #version()
          */
         public Cookie version(int v) {
@@ -1742,7 +1764,7 @@ public class H {
         /**
          * Add a cookie to the current context
          *
-         * @param cookie
+         * @param cookie the cookie
          */
         public static void set(Cookie cookie) {
             ensureInit();
@@ -1752,7 +1774,7 @@ public class H {
         /**
          * Get a cookie from current context by name
          *
-         * @param name
+         * @param name the cookie name
          * @return a cookie with the name specified
          */
         public static Cookie get(String name) {
@@ -1762,6 +1784,7 @@ public class H {
 
         /**
          * Returns all cookies from current context
+         * @return all cookies
          */
         public static Collection<Cookie> all() {
             ensureInit();
@@ -1802,6 +1825,9 @@ public class H {
          * initialization. The difference between calling {@code load}
          * and {@link #put(String, String)} is the former will not change
          * the dirty tag
+         * @param key the key
+         * @param val the value
+         * @return this instance
          */
         public T load(String key, String val) {
             E.illegalArgumentIf(key.contains(":"));
@@ -1811,6 +1837,9 @@ public class H {
 
         /**
          * Associate a string value with the key specified.
+         * @param key the key
+         * @param val the value
+         * @return this instance
          */
         public T put(String key, String val) {
             E.illegalArgumentIf(key.contains(":"));
@@ -1822,6 +1851,9 @@ public class H {
          * Associate an Object value's String representation with the
          * key specified. If the object is {@code null} then {@code null}
          * is associated with the key specified
+         * @param key the key
+         * @param val the value
+         * @return this instance
          */
         public T put(String key, Object val) {
             String valStr = null == val ? null : val.toString();
@@ -1830,6 +1862,8 @@ public class H {
 
         /**
          * Returns the string value associated with the key specified
+         * @param key the key
+         * @return the value string
          */
         public String get(String key) {
             return data.get(key);
@@ -1837,6 +1871,7 @@ public class H {
 
         /**
          * Returns the key set of internal data map
+         * @return key set
          */
         public Set<String> keySet() {
             return data.keySet();
@@ -1844,6 +1879,7 @@ public class H {
 
         /**
          * Returns {@code true} if internal data map is empty
+         * @return if data is empty
          */
         public boolean isEmpty() {
             return data.isEmpty();
@@ -1860,6 +1896,7 @@ public class H {
 
         /**
          * Alias of {@link #dirty()}
+         * @return true if data has been changed
          */
         public boolean changed() {
             return dirty;
@@ -1867,6 +1904,7 @@ public class H {
 
         /**
          * Returns true if the internal data map is empty
+         * @return true if data is empty or false otherwise
          */
         public boolean empty() {
             return data.isEmpty();
@@ -1875,6 +1913,8 @@ public class H {
         /**
          * Returns true if an association with key specified exists in
          * the internal map
+         * @param key the key
+         * @return true if data contains key or false otherwise
          */
         public boolean containsKey(String key) {
             return data.containsKey(key);
@@ -1882,6 +1922,8 @@ public class H {
 
         /**
          * Alias of {@link #containsKey(String)}
+         * @param key  the key
+         * @return true if data contains the key or false otherwise
          */
         public boolean contains(String key) {
             return containsKey(key);
@@ -1889,6 +1931,7 @@ public class H {
 
         /**
          * Returns the number of assoications stored in the internal map
+         * @return size
          */
         public int size() {
             return data.size();
@@ -1933,7 +1976,7 @@ public class H {
      * client side as a cookie. This means the entire size of the
      * information stored in session including names and values shall
      * not exceed 4096 bytes.
-     * <p/>
+     * 
      * <p>To store typed value or big value, use the cache methods
      * of the session class. However it is subject to the implementation
      * to decide whether cache methods are provided and how it is
@@ -1974,6 +2017,7 @@ public class H {
 
         /**
          * Returns the session identifier
+         * @return id of the session
          */
         public String id() {
             if (null == id) {
@@ -2063,7 +2107,7 @@ public class H {
          * Store an object into cache using key specified. The key will be
          * appended with session id, so that it distinct between caching
          * using the same key but in different user sessions.
-         * <p/>
+         * 
          * <p>The object is cached for {@link org.osgl.cache.CacheService#setDefaultTTL(int) default} ttl</p>
          *
          * @param key the key to cache the object
@@ -2291,7 +2335,7 @@ public class H {
      * for one session interaction. This feature of flash makes it very good
      * for server to pass one time information to client, e.g. form submission
      * error message etc.
-     * <p/>
+     * 
      * <p>Like {@link org.osgl.http.H.Session}, you can store only String type
      * information to flash, and the total number of information stored
      * including keys and values shall not exceed 4096 bytes as flash is
@@ -2458,6 +2502,7 @@ public class H {
          * the app call {@code keep} method again
          *
          * @param key the key to identify the data to be kept
+         * @return this flash
          * @see #keep()
          */
         public Flash keep(String key) {
@@ -2575,6 +2620,7 @@ public class H {
         /**
          * Returns the class of the implementation. Not to be used
          * by application
+         * @return the class
          */
         protected abstract Class<T> _impl();
 
@@ -2621,6 +2667,7 @@ public class H {
 
         /**
          * Returns the HTTP method of the request
+         * @return method
          */
         public abstract Method method();
 
@@ -2637,7 +2684,7 @@ public class H {
          * multiple headers with the same name, then the first
          * one is returned. If there is no header has the name
          * then {@code null} is returned
-         * <p/>
+         * 
          * <p>Note header name is case insensitive</p>
          *
          * @param name the name of the header
@@ -2651,7 +2698,7 @@ public class H {
          * an {@link java.lang.Iterable} of {@code String}. If there
          * is no header has the name specified, then an empty iterable
          * is returned.
-         * <p/>
+         * 
          * <p>Note header name is case insensitive</p>
          *
          * @param name the name of the header
@@ -2673,7 +2720,7 @@ public class H {
 
         /**
          * Set {@link org.osgl.http.H.Format accept} to the request
-         * @param fmt
+         * @param fmt the format to be set
          * @return this request
          */
         public T accept(Format fmt) {
@@ -2730,10 +2777,12 @@ public class H {
          * context path. The path is a composite of
          * {@link javax.servlet.http.HttpServletRequest#getServletPath()}
          * and {@link javax.servlet.http.HttpServletRequest#getPathInfo()}
-         * <p/>
+         * 
          * <p>
          * The path starts with "/" but not end with "/"
          * </p>
+         *
+         * @return URL path
          */
         public abstract String path();
 
@@ -2742,6 +2791,7 @@ public class H {
          * The context path starts with "/" but not end
          * with "/". If there is no context path
          * then and empty "" is returned
+         * @return context path
          */
         public abstract String contextPath();
 
@@ -2749,6 +2799,7 @@ public class H {
          * Returns the full URI path. It's composed of
          * {@link #contextPath()} and {@link #path()}
          * The full path starts with "/"
+         * @return full path
          */
         public String fullPath() {
             return Path.url(path(), this);
@@ -2776,6 +2827,7 @@ public class H {
         /**
          * Returns query string or an empty String if the request
          * doesn't contains a query string
+         * @return query string
          */
         public abstract String query();
 
@@ -2804,6 +2856,7 @@ public class H {
 
         /**
          * Returns the domain of the request
+         * @return domain
          */
         public String domain() {
             if (null == domain) resolveHostPort();
@@ -2812,6 +2865,7 @@ public class H {
 
         /**
          * Returns the port
+         * @return port
          */
         public int port() {
             if (-1 == port) resolveHostPort();
@@ -2820,6 +2874,7 @@ public class H {
 
         /**
          * Returns remote ip address
+         * @return remote ip
          */
         protected abstract String _ip();
 
@@ -2926,6 +2981,7 @@ public class H {
 
         /**
          * Returns all cookies of the request in Iterable
+         * @return cookies
          */
         public List<H.Cookie> cookies() {
             if (cookies.isEmpty()) {
@@ -3008,6 +3064,7 @@ public class H {
 
         /**
          * Return content type of the request
+         * @return content type
          */
         public Format contentType() {
             if (null == contentType) {
@@ -3020,6 +3077,7 @@ public class H {
 
         /**
          * Returns encoding of the request
+         * @return character encoding
          */
         public String characterEncoding() {
             if (null == encoding) {
@@ -3069,6 +3127,7 @@ public class H {
 
         /**
          * Returns locale of the request
+         * @return locale
          */
         public Locale locale() {
             if (null == locales) parseLocales();
@@ -3077,6 +3136,7 @@ public class H {
 
         /**
          * Returns all locales of the request
+         * @return all locales of the request
          */
         public C.List<Locale> locales() {
             if (null == locales) parseLocales();
@@ -3087,6 +3147,7 @@ public class H {
 
         /**
          * Returns the content length of the request
+         * @return content length
          */
         public long contentLength() {
             if (len > -2) return len;
@@ -3113,6 +3174,7 @@ public class H {
         /**
          * Returns body of the request as binary data using {@link java.io.InputStream}
          *
+         * @return input stream of the request body
          * @throws IllegalStateException if {@link #reader()} has already
          *                               been called on this request instance
          */
@@ -3138,6 +3200,7 @@ public class H {
         /**
          * Returns body of the request as binary data using {@link java.io.Reader}
          *
+         * @return the reader of the request body
          * @throws IllegalStateException if {@link #inputStream()} has already
          *                               been called on this request instance
          */
@@ -3191,6 +3254,7 @@ public class H {
 
         /**
          * The Http Basic user
+         * @return the user
          */
         public String user() {
             if (null == user) parseAuthorization();
@@ -3201,6 +3265,7 @@ public class H {
 
         /**
          * the Http Basic password
+         * @return the password
          */
         public String password() {
             if (null == password) parseAuthorization();
@@ -3215,6 +3280,7 @@ public class H {
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
          *
+         * @param <T> the requestion type
          * @return the current request instance
          */
         @SuppressWarnings("unchecked")
@@ -3226,6 +3292,7 @@ public class H {
          * Set a request instance into the current execution context,
          * for example into a {@link java.lang.ThreadLocal}
          *
+         * @param <T> the response type
          * @param request the request to be set to current execution context
          */
         public static <T extends Request> void current(T request) {
@@ -3294,6 +3361,7 @@ public class H {
         /**
          * Returns the class of the implementation. Not to be used
          * by application
+         * @return implementation class
          */
         protected abstract Class<T> _impl();
 
@@ -3321,6 +3389,7 @@ public class H {
         /**
          * Returns the output stream to write to the response
          *
+         * @return output stream to the response
          * @throws java.lang.IllegalStateException          if
          *                                                  {@link #writer()} is called already
          * @throws org.osgl.exception.UnexpectedIOException if
@@ -3334,6 +3403,7 @@ public class H {
         /**
          * Returns the writer to write to the response
          *
+         * @return writer to the response
          * @throws java.lang.IllegalStateException          if {@link #outputStream()} is called already
          * @throws org.osgl.exception.UnexpectedIOException if there are output exception
          */
@@ -3345,6 +3415,7 @@ public class H {
         /**
          * Returns a print writer to write to the response
          *
+         * @return the print writer for the response
          * @throws IllegalStateException if {@link #outputStream()} is called already
          * @throws UnexpectedIOException if there are output exception
          */
@@ -3392,6 +3463,7 @@ public class H {
          * If no character encoding has been specified, the
          * charset parameter is omitted.
          *
+         * @param encoding the encoding
          * @return a <code>String</code> specifying the
          * content type, for example,
          * <code>text/html; charset=UTF-8</code>,
@@ -3427,7 +3499,7 @@ public class H {
          * encoding used, for example, <code>text/html; charset=ISO-8859-4</code>.
          * If content type has already been set to the response, this method
          * will update the content type with the new value
-         * <p/>
+         * 
          * <p>this method must be called before calling {@link #writer()}
          * or {@link #outputStream()}</p>
          *
@@ -3517,6 +3589,7 @@ public class H {
         /**
          * Returns the locale assigned to the response.
          *
+         * @return locale
          * @see #locale(java.util.Locale)
          */
         public abstract Locale locale();
@@ -3547,11 +3620,11 @@ public class H {
          * response to look like an HTML-formatted server error page
          * containing the specified message, setting the content type
          * to "text/html", leaving cookies and other headers unmodified.
-         * <p/>
+         *
          * If an error-page declaration has been made for the web application
          * corresponding to the status code passed in, it will be served back in
          * preference to the suggested msg parameter.
-         * <p/>
+         *
          * <p>If the response has already been committed, this method throws
          * an IllegalStateException.
          * After using this method, the response should be considered
@@ -3603,7 +3676,7 @@ public class H {
          * without a leading '/' the container interprets it as relative to
          * the current request URI. If the location is relative with a leading
          * '/' the container interprets it as relative to the servlet container root.
-         * <p/>
+         *
          * <p>If the response has already been committed, this method throws
          * an IllegalStateException.
          * After using this method, the response should be considered
@@ -3647,7 +3720,7 @@ public class H {
          * @param sc the status code
          * @return the response itself
          * @see #sendError
-         * @see #status(Status)
+         * @see #status(int)
          */
         public abstract T status(int sc);
 
@@ -3758,6 +3831,7 @@ public class H {
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
          *
+         * @param <T> the response type
          * @return the current request instance
          */
         @SuppressWarnings("unchecked")
@@ -3770,6 +3844,7 @@ public class H {
          * for example into a {@link java.lang.ThreadLocal}
          *
          * @param response the request to be set to current execution context
+         * @param <T> the sub type of response
          */
         public static <T extends Response> void current(T response) {
             Current.response(response);
