@@ -65,7 +65,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.2</version>
+    <version>0.3.3-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
