@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+0.3.3-SNAPSHOT
+- update osgl-storage to 0.7.3-SNAPSHOT
+
 0.3.1-SNAPSHOT
 - Add secure configuration to HttpConfig
 - Add H.Response.prepareDownload(String, String) method
