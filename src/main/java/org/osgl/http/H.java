@@ -1907,7 +1907,7 @@ public class H {
          * @return true if data is empty or false otherwise
          */
         public boolean empty() {
-            return isEmpty();
+            return data.isEmpty();
         }
 
         /**
@@ -2041,7 +2041,7 @@ public class H {
         }
 
         public boolean isEmpty() {
-            return empty();
+            return super.empty() || (containsKey(KEY_EXPIRATION) && size() == 1);
         }
 
         /**
