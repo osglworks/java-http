@@ -2101,7 +2101,7 @@ public class H {
             if (null != cs) return cs;
             synchronized (H.class) {
                 if (null == cs) {
-                    cs = HttpConfig.cacheService();
+                    cs = HttpConfig.sessionCache();
                 }
                 return cs;
             }

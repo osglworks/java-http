@@ -1,5 +1,6 @@
 package org.osgl.http;
 
+import org.osgl.$;
 import org.osgl.cache.CacheService;
 import org.osgl.cache.CacheServiceProvider;
 import org.osgl.util.E;
@@ -9,18 +10,14 @@ import java.util.Locale;
 
 public class HttpConfig {
 
-    private static CacheServiceProvider cacheServiceProvider;
+    private static CacheService sessionCache;
 
-    public static void setCacheServiceProvider(CacheServiceProvider cacheProvider) {
-        E.NPE(cacheProvider);
-        HttpConfig.cacheServiceProvider = cacheProvider;
+    public static void setSessionCache(CacheService cache) {
+        sessionCache = $.notNull(cache);
     }
 
-    public static CacheService cacheService() {
-        if (null == cacheServiceProvider) {
-            cacheServiceProvider = CacheServiceProvider.Impl.Auto;
-        }
-        return cacheServiceProvider.get();
+    public static CacheService sessionCache() {
+        return sessionCache;
     }
 
     private static Locale defLocale = Locale.getDefault();

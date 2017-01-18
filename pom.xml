@@ -17,6 +17,7 @@
 <!-- history
 0.3.3-SNAPSHOT
 - update osgl-storage to 0.7.3-SNAPSHOT
+- update HttpConfig cache service relevant API
 
 0.3.1-SNAPSHOT
 - Add secure configuration to HttpConfig
@@ -169,7 +170,7 @@
         <dependency>
             <groupId>org.osgl</groupId>
             <artifactId>osgl-cache</artifactId>
-            <version>0.4.0</version>
+            <version>0.4.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
