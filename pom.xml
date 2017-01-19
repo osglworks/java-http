@@ -15,9 +15,11 @@
   ~ under the License.
   -->
 <!-- history
+0.3.4-SNAPSHOT
+- update HttpConfig cache service relevant API
+
 0.3.3-SNAPSHOT
 - update osgl-storage to 0.7.3-SNAPSHOT
-- update HttpConfig cache service relevant API
 
 0.3.1-SNAPSHOT
 - Add secure configuration to HttpConfig
@@ -69,7 +71,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.3-SNAPSHOT</version>
+    <version>0.3.4-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
