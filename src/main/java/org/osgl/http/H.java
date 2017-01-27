@@ -8,6 +8,8 @@ import org.osgl.exception.UnexpectedIOException;
 import org.osgl.http.util.Path;
 import org.osgl.logging.L;
 import org.osgl.logging.Logger;
+import org.osgl.storage.ISObject;
+import org.osgl.storage.impl.SObject;
 import org.osgl.util.*;
 import org.osgl.web.util.UserAgent;
 
@@ -3351,7 +3353,7 @@ public class H {
          */
         public T context(Object context) {
             this.context = $.notNull(context);
-            return (T)this;
+            return me();
         }
 
         /**
@@ -3517,7 +3519,7 @@ public class H {
         public T contentType(String type) {
             _setContentType(type);
             contentType = type;
-            return (T) this;
+            return me();
         }
 
         /**
@@ -3551,7 +3553,7 @@ public class H {
                     }
                 }
             }
-            return (T) this;
+            return me();
         }
 
         /**
@@ -3570,7 +3572,7 @@ public class H {
          */
         public T etag(String etag) {
             header(ETAG, etag);
-            return (T)this;
+            return me();
         }
 
         /**
@@ -3586,7 +3588,7 @@ public class H {
 
         public T locale(Locale locale) {
             _setLocale(locale);
-            return (T) this;
+            return me();
         }
 
 
@@ -3744,7 +3746,7 @@ public class H {
          */
         public T status(Status s) {
             status(s.code());
-            return (T) this;
+            return me();
         }
 
 
@@ -3774,7 +3776,12 @@ public class H {
             if (!containsHeader(name)) {
                 addHeader(name, value);
             }
-            return (T) this;
+            return me();
+        }
+
+        public T writeBinary(ISObject binary) {
+            IO.copy(binary.asInputStream(), outputStream());
+            return me();
         }
 
         /**
@@ -3789,7 +3796,7 @@ public class H {
             } catch (UnsupportedEncodingException e) {
                 throw E.encodingException(e);
             }
-            return (T) this;
+            return me();
         }
 
         /**
@@ -3852,6 +3859,10 @@ public class H {
          */
         public static <T extends Response> void current(T response) {
             Current.response(response);
+        }
+
+        protected T me() {
+            return (T) this;
         }
 
         private static boolean canAsciiEncode(String string) {
