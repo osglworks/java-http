@@ -3780,7 +3780,7 @@ public class H {
         }
 
         public T writeBinary(ISObject binary) {
-            IO.copy(binary.asInputStream(), outputStream());
+            IO.copy(binary.asInputStream(), outputStream(), false);
             return me();
         }
 
