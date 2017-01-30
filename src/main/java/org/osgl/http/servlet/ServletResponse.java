@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 public class ServletResponse extends H.Response<ServletResponse> {
@@ -38,6 +39,16 @@ public class ServletResponse extends H.Response<ServletResponse> {
     public ServletResponse contentLength(long len) {
         r.setContentLength((int) len);
         return this;
+    }
+
+    /**
+     * This method is not supported in ServletResponse
+     * @param buffer direct byte buffer
+     * @return this response instance
+     */
+    @Override
+    public ServletResponse writeContent(ByteBuffer buffer) {
+        throw E.unsupport("Writing direct byte buffer is not supported by ServletResponse");
     }
 
     @Override

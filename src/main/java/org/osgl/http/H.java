@@ -17,6 +17,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.text.ParseException;
@@ -3798,6 +3799,8 @@ public class H {
             }
             return me();
         }
+
+        public abstract T writeContent(ByteBuffer buffer);
 
         /**
          * Write content to the response
