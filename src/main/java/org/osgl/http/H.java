@@ -1449,6 +1449,8 @@ public class H {
         @Deprecated
         public static final Format form_multipart_data = FORM_MULTIPART_DATA;
 
+        public static final Format BINARY = new Format("binary", "application/octet-stream");
+
         /**
          * The "unknown" content format. Use default content type: "text/html"
          */
