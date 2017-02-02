@@ -2769,7 +2769,8 @@ public class H {
         }
 
         public boolean etagMatches(String etag) {
-            return S.eq(this.etag(), etag);
+            String etag0 = this.etag();
+            return null != etag0 && S.eq(etag0, etag);
         }
 
         /**
