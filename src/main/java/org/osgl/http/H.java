@@ -1493,6 +1493,23 @@ public class H {
         }
     }
 
+    public enum MediaType {
+        CSS, CSV, DOC, DOCX, HTML, JAVASCRIPT, JSON, PDF, TXT, XLS, XLSX, XML;
+        private Format fmt;
+        private MediaType() {
+            fmt = Format.valueOf(name());
+        }
+
+        public Format format() {
+            return fmt;
+        }
+
+        @Override
+        public String toString() {
+            return fmt.contentType();
+        }
+    }
+
     public static Format format(String name) {
         return Format.valueOf(name);
     }
@@ -2733,8 +2750,12 @@ public class H {
          * @return this request
          */
         public T accept(Format fmt) {
-            E.NPE(fmt);
-            this.accept = fmt;
+            this.accept = $.notNull(fmt);
+            return me();
+        }
+
+        public T accept(MediaType mediaType) {
+            this.accept = mediaType.format();
             return me();
         }
 
