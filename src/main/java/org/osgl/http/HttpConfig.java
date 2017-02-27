@@ -2,7 +2,6 @@ package org.osgl.http;
 
 import org.osgl.$;
 import org.osgl.cache.CacheService;
-import org.osgl.cache.CacheServiceProvider;
 import org.osgl.util.E;
 import org.osgl.util.S;
 

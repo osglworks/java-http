@@ -1,13 +1,11 @@
 package org.osgl.http.servlet;
 
-import org.osgl.exception.UnexpectedIOException;
 import org.osgl.http.H;
 import org.osgl.util.E;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 

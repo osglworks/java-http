@@ -1,6 +1,5 @@
 package org.osgl.http;
 
-import org.apache.commons.codec.Charsets;
 import org.osgl.$;
 import org.osgl.cache.CacheService;
 import org.osgl.exception.NotAppliedException;
@@ -9,14 +8,11 @@ import org.osgl.http.util.Path;
 import org.osgl.logging.L;
 import org.osgl.logging.Logger;
 import org.osgl.storage.ISObject;
-import org.osgl.storage.impl.SObject;
 import org.osgl.util.*;
 import org.osgl.web.util.UserAgent;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
