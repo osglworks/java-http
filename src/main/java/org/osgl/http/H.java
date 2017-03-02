@@ -1418,12 +1418,34 @@ public class H {
         /**
          * The "application/rtf" content format
          */
-        public static final Format RTF = valueOf("pdf");
+        public static final Format RTF = valueOf("rtf");
         /**
          * Deprecated, please use {@link #RTF}
          */
         @Deprecated
         public static final Format rtf = RTF;
+
+        // --- common images
+        public static final Format GIF = valueOf("gif");
+        public static final Format ICO = valueOf("ico");
+        public static final Format JPG = valueOf("jpg");
+        public static final Format BMP = valueOf("bmp");
+        public static final Format PNG = valueOf("png");
+        public static final Format SVG = valueOf("svg");
+        public static final Format TIF = valueOf("tif");
+
+        // -- common videos
+        public static final Format MOV = valueOf("mov");
+        public static final Format MP4 = valueOf("mp4");
+        public static final Format MPG = valueOf("mpg");
+        public static final Format AVI = valueOf("avi");
+        public static final Format FLV = valueOf("flv");
+
+        // -- common audios
+        public static final Format MP3 = valueOf("mp3");
+        public static final Format MPA = valueOf("mpa");
+        public static final Format WAV = valueOf("wav");
+
 
         /**
          * The "application/x-www-form-urlencoded" content format
@@ -1484,6 +1506,21 @@ public class H {
             public static final int TXT = Format.TXT.ordinal;
             public static final int PDF = Format.PDF.ordinal;
             public static final int RTF = Format.RTF.ordinal;
+            public static final int GIF = Format.GIF.ordinal;
+            public static final int ICO = Format.ICO.ordinal;
+            public static final int JPG = Format.JPG.ordinal;
+            public static final int BMP = Format.BMP.ordinal;
+            public static final int PNG = Format.PNG.ordinal;
+            public static final int SVG = Format.SVG.ordinal;
+            public static final int TIF = Format.TIF.ordinal;
+            public static final int MOV = Format.MOV.ordinal;
+            public static final int MP4 = Format.MP4.ordinal;
+            public static final int MPG = Format.MPG.ordinal;
+            public static final int AVI = Format.AVI.ordinal;
+            public static final int FLV = Format.FLV.ordinal;
+            public static final int MP3 = Format.MP3.ordinal;
+            public static final int MPA = Format.MPA.ordinal;
+            public static final int WAV = Format.WAV.ordinal;
             public static final int FORM_URL_ENCODED = Format.FORM_URL_ENCODED.ordinal;
             public static final int FORM_MULTIPART_DATA = Format.FORM_MULTIPART_DATA.ordinal;
         }
