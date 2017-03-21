@@ -110,7 +110,16 @@ public enum Path {
     public static String fullUrl(String path, boolean secure) {
         if (isFullUrl(path)) return path;
         StringBuilder sb = S.builder(secure ? "https://" : "http://");
-        sb.append(HttpConfig.domain()).append(":").append(secure ? HttpConfig.securePort() : HttpConfig.nonSecurePort());
+        sb.append(HttpConfig.domain());
+        if (secure) {
+            if (443 != HttpConfig.securePort()) {
+                sb.append(":").append(HttpConfig.securePort());
+            }
+        } else {
+            if (80 != HttpConfig.nonSecurePort()) {
+                sb.append(":").append(HttpConfig.nonSecurePort());
+            }
+        }
         if (!path.startsWith("//")) {
             String ctx = HttpConfig.contextPath();
             if (S.notBlank(ctx) && !"/".equals(ctx)) {
@@ -138,8 +147,19 @@ public enum Path {
         if (null == req) return fullUrl(path, false);
 
         if (isFullUrl(path)) return path;
+        boolean secure = req.scheme().equals("https");
         StringBuilder sb = S.builder(req.scheme()).append("://");
-        sb.append(req.domain()).append(":").append(req.port());
+        sb.append(req.domain());
+        int reqPort = req.port();
+        if (secure) {
+            if (443 != reqPort) {
+                sb.append(":").append(reqPort);
+            }
+        } else {
+            if (80 != reqPort) {
+                sb.append(":").append(reqPort);
+            }
+        }
         if (!path.startsWith("//")) {
             String ctx = req.contextPath();
             if (!"/".equals(ctx)) {

@@ -1038,7 +1038,6 @@ public class H {
     public static class Format implements Serializable {
 
         private static final Map<String, Format> predefined = new LinkedHashMap<String, Format>();
-        private static volatile Properties types;
 
         private int ordinal;
         private String name;
