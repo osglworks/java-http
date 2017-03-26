@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+1.0.2
+- Take out version range. See https://issues.apache.org/jira/browse/MNG-3092
+
 1.0.1
 - #1 H.Rquest.fullUrl() shall not output `80` when sending to port `80`
 
@@ -109,8 +112,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <maven.test.skip>false</maven.test.skip>
-        <osgl-storage.version>[1.0.0,2.0.0)</osgl-storage.version>
-        <osgl-cache.version>[1.0.0,2.0.0)</osgl-cache.version>
+        <osgl-storage.version>1.0.1</osgl-storage.version>
+        <osgl-cache.version>1.0.2</osgl-cache.version>
         <servlet.version>2.5</servlet.version>
     </properties>
 
