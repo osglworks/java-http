@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+1.0.3
+- Decouple the osgl-storage dependency by making it provided scope
+
 1.0.2
 - Take out version range. See https://issues.apache.org/jira/browse/MNG-3092
 
@@ -112,7 +115,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <maven.test.skip>false</maven.test.skip>
-        <osgl-storage.version>1.0.1</osgl-storage.version>
+        <osgl-storage.version>1.1.0-SNAPSHOT</osgl-storage.version>
         <osgl-cache.version>1.0.2</osgl-cache.version>
         <servlet.version>2.5</servlet.version>
     </properties>
@@ -176,6 +179,7 @@
             <groupId>org.osgl</groupId>
             <artifactId>osgl-storage</artifactId>
             <version>${osgl-storage.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
