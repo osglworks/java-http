@@ -2014,6 +2014,23 @@ public class H {
         }
 
         @Override
+        public int hashCode() {
+            return data.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj instanceof KV) {
+                KV that = (KV) obj;
+                return that.data.equals(this.data);
+            }
+            return false;
+        }
+
+        @Override
         public String toString() {
             return data.toString();
         }
@@ -2139,6 +2156,13 @@ public class H {
         }
 
         // ------- eof regular session attribute operations ---
+
+        @Override
+        public boolean equals(Object obj) {
+            boolean superEq = super.equals(obj);
+            return superEq && (obj instanceof H.Session) && $.eq(((Session) obj).id, id);
+        }
+
 
         // ------- cache operations ------
 
@@ -2657,6 +2681,13 @@ public class H {
             String value = Codec.encodeUrl(sb.toString(), Charsets.UTF_8);
             return new Cookie(flashKey).value(value);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            boolean superEq = super.equals(obj);
+            return superEq && (obj instanceof H.Flash);
+        }
+
 
     } // eof Flash
 
