@@ -36,7 +36,7 @@ public class H {
         GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT;
 
         private static EnumSet<Method> unsafeMethods = EnumSet.of(POST, DELETE, PUT, PATCH);
-        private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, DELETE);
+        private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, PATCH, DELETE);
 
         /**
          * Returns if this http method is safe, meaning it
