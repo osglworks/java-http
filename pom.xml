@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+1.0.5
+- #3 `H.Method.actionMethos()` shall include `H.Method.Patch`
+
 1.0.4
 - #2 `H.Session` and `H.Flash` shall implement `hashCode()` and `equals()` method
 
