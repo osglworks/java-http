@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+1.0.6
+- #5 `H.Response.writeBinary` shall close the outputstream
+
 1.0.5
 - #3 `H.Method.actionMethod()` shall include `H.Method.Patch`
 
