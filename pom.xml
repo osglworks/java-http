@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+1.1.0
+- #4 Define http status int constant
+
 1.0.6
 - #5 `H.Response.writeBinary` shall close the outputstream
 
@@ -101,7 +104,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.1.0</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
