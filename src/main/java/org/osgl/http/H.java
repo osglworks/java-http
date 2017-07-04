@@ -33,7 +33,7 @@ public class H {
     protected static final Logger logger = L.get(Http.class);
 
     public enum Method {
-        GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT;
+        GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT, _UNKNOWN_;
 
         private static EnumSet<Method> unsafeMethods = EnumSet.of(POST, DELETE, PUT, PATCH);
         private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, PATCH, DELETE);
@@ -60,8 +60,29 @@ public class H {
             return unsafeMethods.contains(this);
         }
 
+        private static volatile Map<String, H.Method> methods;
+
+        /**
+         * Returns an HTTP Method enum corresponding to the method string.
+         *
+         * If no HTTP method enum found then {@link #_UNKNOWN_} will be returned
+         *
+         * @param method the method string
+         * @return the HTTP Method enum as described above
+         */
         public static Method valueOfIgnoreCase(String method) {
-            return valueOf(method.toUpperCase());
+            if (null == methods) {
+                synchronized (Method.class) {
+                    if (null == methods) {
+                        methods = new HashMap<>();
+                        for (Method m : values()) {
+                            methods.put(m.name(), m);
+                        }
+                    }
+                }
+            }
+            Method m = methods.get(method.toUpperCase());
+            return null != m ? m : _UNKNOWN_;
         }
 
         public static EnumSet<Method> actionMethods() {
