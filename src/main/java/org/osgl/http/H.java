@@ -60,6 +60,14 @@ public class H {
             return unsafeMethods.contains(this);
         }
 
+        /**
+         * Is this known method?
+         * @return `true` if this method is unknown
+         */
+        public boolean isUnknown() {
+            return _UNKNOWN_ == this;
+        }
+
         private static volatile Map<String, H.Method> methods;
 
         /**
