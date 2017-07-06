@@ -164,7 +164,12 @@ public class H {
             public static final int PRECONDITION_REQUIRED = 428;
             public static final int TOO_MANY_REQUESTS = 429;
             public static final int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
+            /**
+             * One should use {@link #UNAVAILABLE_FOR_LEGAL_REASONS} instead
+             */
+            @Deprecated
             public static final int UNAVAILABLE_FOR_LEGAL_REASON = 451;
+            public static final int UNAVAILABLE_FOR_LEGAL_REASONS = 451;
 
             public static final int INTERNAL_SERVER_ERROR = 500;
             public static final int NOT_IMPLEMENTED = 501;
@@ -668,11 +673,20 @@ public class H {
         public static final Status REQUEST_HEADER_FIELDS_TOO_LARGE = new Status(Code.REQUEST_HEADER_FIELDS_TOO_LARGE);
 
         /**
-         * {@code 451 Unavailable for legal reason}
+         * {@code 451 Unavailable for legal reasons}
+         *
+         * This constant is deprecated. One should use {@link #UNAVAILABLE_FOR_LEGAL_REASONS} instead
+         *
          * @see <a href="http://getstatuscode.com/451">http://getstatuscode.com/451</a>
          */
+        @Deprecated
         public static final Status UNAVAILABLE_FOR_LEGAL_REASON = new Status(Code.UNAVAILABLE_FOR_LEGAL_REASON);
 
+        /**
+         * {@code 451 Unavailable for legal reasons}
+         * @see <a href="http://getstatuscode.com/451">http://getstatuscode.com/451</a>
+         */
+        public static final Status UNAVAILABLE_FOR_LEGAL_REASONS = new Status(Code.UNAVAILABLE_FOR_LEGAL_REASONS);
         // --- 5xx Server Error ---
 
         /**
