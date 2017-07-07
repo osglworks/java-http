@@ -15,7 +15,13 @@
   ~ under the License.
   -->
 <!-- history
-1.1.0
+1.1.3
+- Deprecate H.Status.UNAVAILABLE_FOR_LEGAL_REASON to H.Status.UNAVAILABLE_FOR_LEGAL_REASONS
+
+1.1.2
+- #7 Support unknown HTTP method
+
+1.1.1
 - #4 Define http status int constant
 
 1.0.6
