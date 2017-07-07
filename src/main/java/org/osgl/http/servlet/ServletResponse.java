@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Locale;
 
 public class ServletResponse extends H.Response<ServletResponse> {
@@ -116,6 +117,31 @@ public class ServletResponse extends H.Response<ServletResponse> {
     @Override
     public ServletResponse header(String name, String value) {
         r.setHeader(name, value);
+        return this;
+    }
+
+    @Override
+    public ServletResponse header(H.Header header) {
+        List<String> values = header.values();
+        int len = values.size();
+        if (len > 0) {
+            String name = header.name();
+            r.setHeader(name, values.get(0));
+            for (int i = 1; i < len; ++i) {
+                r.addHeader(name, values.get(i));
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public ServletResponse addHeaderValues(String name, String... values) {
+        if (values.length < 1) {
+            return this;
+        }
+        for (String value : values) {
+            r.addHeader(name, value);
+        }
         return this;
     }
 

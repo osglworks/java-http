@@ -3945,6 +3945,29 @@ public class H {
         public abstract T header(String name, String value);
 
         /**
+         * Set a response header with a {@link Header} instance.
+         *
+         * If the header had already been set, the old value will be overwitten
+         * by the new header instance
+         *
+         * @param header the header to be set on the response
+         * @return this response
+         */
+        public abstract T header(H.Header header);
+
+        /**
+         * Append specified values to header specified by name.
+         *
+         * If there is no header found by name specified then create a
+         * header and put all values into it
+         *
+         * @param name the name of the header
+         * @param values the values to be append to existing header values
+         * @return this response
+         */
+        public abstract T addHeaderValues(String name, String ... values);
+
+        /**
          * Sets the status code for this response.  This method is used to
          * set the return status code when there is no error (for example,
          * for the status codes SC_OK or SC_MOVED_TEMPORARILY).  If there
