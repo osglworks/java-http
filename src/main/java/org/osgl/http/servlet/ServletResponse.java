@@ -75,8 +75,9 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public void addCookie(H.Cookie cookie) {
+    public ServletResponse addCookie(H.Cookie cookie) {
         r.addCookie(ServletCookie.asServletCookie(cookie));
+        return me();
     }
 
     @Override
