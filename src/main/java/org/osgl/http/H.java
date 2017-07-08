@@ -3837,8 +3837,7 @@ public class H {
          *
          * @param cookie the Cookie to return to the client
          */
-        public abstract void addCookie(H.Cookie cookie);
-
+        public abstract T addCookie(H.Cookie cookie);
 
         /**
          * Returns a boolean indicating whether the named response header
@@ -4003,7 +4002,6 @@ public class H {
             return me();
         }
 
-
         /**
          * Adds a response header with the given name and value.
          * This method allows response headers to have multiple values.
@@ -4156,6 +4154,35 @@ public class H {
         }
 
     } // eof Response
+
+    /**
+     * Encapsulate HTTP computation states
+     */
+    public interface Context {
+        /**
+         * Returns the {@link Request request} object
+         * @return the request
+         */
+        Request req();
+
+        /**
+         * Returns the {@link Response response} object
+         * @return the response
+         */
+        Response resp();
+
+        /**
+         * Returns the {@link Session session} object
+         * @return the session
+         */
+        Session session();
+
+        /**
+         * Returns the {@link Flash flash} object
+         * @return the flash
+         */
+        Flash flash();
+    }
 
     H() {
     }

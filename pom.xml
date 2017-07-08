@@ -16,6 +16,7 @@
   -->
 <!-- history
 2.0.0
+* #9 Add `H.Context` interface
 * #8 Add methods to `H.Response` to accept `H.Header` type parameter
 * #6 Add HTTP client support
 
