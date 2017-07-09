@@ -214,7 +214,7 @@ public class H {
          * @return if this status error
          */
         public boolean isError() {
-            return isClientError() || isServerError();
+            return code > 399 && code < 600;
         }
 
         /**
@@ -222,7 +222,7 @@ public class H {
          * @return if this status server error
          */
         public boolean isServerError() {
-            return code / 100 == 5;
+            return code > 499 && code < 600;
         }
 
         /**
@@ -230,7 +230,7 @@ public class H {
          * @return if this status client error
          */
         public boolean isClientError() {
-            return code / 100 == 4;
+            return code > 399 && code < 500;
         }
 
         /**
@@ -238,7 +238,7 @@ public class H {
          * @return if this status success series
          */
         public boolean isSuccess() {
-            return code / 100 == 2;
+            return code > 199 && code < 300;
         }
 
         /**
@@ -246,7 +246,7 @@ public class H {
          * @return if this status redirect series
          */
         public boolean isRedirect() {
-            return code / 100 == 3;
+            return code > 299 && code < 400;
         }
 
         /**
@@ -254,7 +254,7 @@ public class H {
          * @return is this status informational series
          */
         public boolean isInformational() {
-            return code / 100 == 1;
+            return code > 99 && code < 200;
         }
 
         /**
