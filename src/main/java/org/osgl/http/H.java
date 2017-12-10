@@ -1,5 +1,7 @@
 package org.osgl.http;
 
+import static org.osgl.http.H.Header.Names.*;
+
 import org.osgl.$;
 import org.osgl.cache.CacheService;
 import org.osgl.exception.NotAppliedException;
@@ -21,8 +23,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.osgl.http.H.Header.Names.*;
 
 /**
  * The namespace to access Http features.
@@ -762,7 +762,7 @@ public class H {
         return Status.valueOf(n);
     }
 
-    public static final class Header implements Serializable {
+    public static final class Header implements java.io.Serializable {
 
         private static final long serialVersionUID = -3987421318751857114L;
 
@@ -1393,14 +1393,16 @@ public class H {
                 fmt = HTML;
             } else if (contentType.contains("application/xhtml") || contentType.contains("text/html") || contentType.startsWith("*/*")) {
                 fmt = HTML;
-            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
-                fmt = XML;
+            } else if (contentType.contains("text/css")) {
+                fmt = CSS;
             } else if (contentType.contains("application/json") || contentType.contains("text/javascript")) {
                 fmt = JSON;
             } else if (contentType.contains("application/x-www-form-urlencoded")) {
                 fmt = FORM_URL_ENCODED;
             } else if (contentType.contains("multipart/form-data") || contentType.contains("multipart/mixed")) {
                 fmt = FORM_MULTIPART_DATA;
+            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
+                fmt = XML;
             } else if (contentType.contains("text/plain")) {
                 fmt = TXT;
             } else if (contentType.contains("csv") || contentType.contains("comma-separated-values")) {

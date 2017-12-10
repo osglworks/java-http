@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+1.1.4
+* `H.Request.accept` parsing shall support `text/css` #13
+
 1.1.3
 - Deprecate H.Status.UNAVAILABLE_FOR_LEGAL_REASON to H.Status.UNAVAILABLE_FOR_LEGAL_REASONS
 
@@ -133,7 +136,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <maven.test.skip>false</maven.test.skip>
-        <osgl-storage.version>1.2.0</osgl-storage.version>
+        <osgl-storage.version>1.4.2</osgl-storage.version>
         <osgl-cache.version>1.0.2</osgl-cache.version>
         <servlet.version>2.5</servlet.version>
     </properties>
