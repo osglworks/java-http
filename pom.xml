@@ -15,6 +15,9 @@
   ~ under the License.
   -->
 <!-- history
+1.2.0
+* Update to osgl-1.5
+
 1.1.4
 * `H.Request.accept` parsing shall support `text/css` #13
 
@@ -113,7 +116,7 @@
     <groupId>org.osgl</groupId>
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.4-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
@@ -136,8 +139,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <maven.test.skip>false</maven.test.skip>
-        <osgl-storage.version>1.4.2</osgl-storage.version>
-        <osgl-cache.version>1.0.2</osgl-cache.version>
+        <osgl-storage.version>1.5.0-SNAPSHOT</osgl-storage.version>
+        <osgl-cache.version>1.1.0-SNAPSHOT</osgl-cache.version>
         <servlet.version>2.5</servlet.version>
     </properties>
 
