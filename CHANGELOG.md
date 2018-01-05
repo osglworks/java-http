@@ -1,5 +1,9 @@
 # OSGL HTTP Change Log
 
+1.2.1 - 5/Jan/2018
+* Add `Content-Security-Policy` to `H.Header` #14
+* Apply versioning from osgl-bootstrap #12
+
 1.2.0 - 19/Dec/2017
 * Update to osgl-1.5.0
 

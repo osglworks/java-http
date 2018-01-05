@@ -27,11 +27,13 @@ import org.osgl.cache.CacheService;
 import org.osgl.exception.NotAppliedException;
 import org.osgl.exception.UnexpectedIOException;
 import org.osgl.http.util.Path;
-import org.osgl.logging.L;
+import org.osgl.logging.LogManager;
 import org.osgl.logging.Logger;
 import org.osgl.storage.ISObject;
 import org.osgl.util.*;
 import org.osgl.web.util.UserAgent;
+import osgl.version.Version;
+import osgl.version.Versioned;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -48,9 +50,12 @@ import java.util.regex.Pattern;
  * The namespace to access Http features.
  * Alias of {@link org.osgl.http.Http}
  */
+@Versioned
 public class H {
 
-    protected static final Logger logger = L.get(Http.class);
+    public static final Version VERSION = Version.get();
+
+    protected static final Logger logger = LogManager.get(Http.class);
 
     public enum Method {
         GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT, _UNKNOWN_;
@@ -877,6 +882,10 @@ public class H {
              */
             public static final String CONTENT_ENCODING = "Content-Encoding";
             /**
+             * {@code "Content-MD5"}
+             */
+            public static final String CONTENT_MD5 = "Content-Md5";
+            /**
              * {@code "Content-Language"}
              */
             public static final String CONTENT_LANGUAGE = "Content-Language";
@@ -889,13 +898,13 @@ public class H {
              */
             public static final String CONTENT_LOCATION = "Content-Location";
             /**
+             * {@code "Content-Security-Policy"}
+             */
+            public static final String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
+            /**
              * {@code "Content-Transfer-Encoding"}
              */
             public static final String CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
-            /**
-             * {@code "Content-MD5"}
-             */
-            public static final String CONTENT_MD5 = "Content-Md5";
             /**
              * {@code "Content-Range"}
              */
