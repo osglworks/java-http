@@ -2038,7 +2038,7 @@ public class H {
 
     public static class KV<T extends KV> implements Serializable {
         private static final long serialVersionUID = 891504755320699989L;
-        protected Map<String, String> data = C.newMap();
+        protected Map<String, String> data = new HashMap<>();
         private boolean dirty = false;
 
         private KV() {}
@@ -2607,7 +2607,7 @@ public class H {
          * Stores the data that will be output to cookie so next time the user's request income
          * they will be available for the application to access
          */
-        private Map<String, String> out = C.newMap();
+        private Map<String, String> out = new HashMap<>();
 
 
         /**
@@ -2907,7 +2907,7 @@ public class H {
 
         protected volatile Reader reader;
 
-        private Map<String, Cookie> cookies = C.newMap();
+        private Map<String, Cookie> cookies = new HashMap<>();
 
         /**
          * Attach a context object to the request instance
