@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.2.3 - 15/Jan/2018
+* Minor performance improvement
+
 1.2.2 - 15/Jan/2018
 * Minor performance improvement
 

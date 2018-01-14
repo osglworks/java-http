@@ -114,7 +114,12 @@ public class H {
                     }
                 }
             }
-            Method m = methods.get(method.toUpperCase());
+            // performance tune, most of the case we don't need the
+            // toUpperCase() call
+            Method m = methods.get(method);
+            if (null == m) {
+                m = methods.get(method.toUpperCase());
+            }
             return null != m ? m : _UNKNOWN_;
         }
 
