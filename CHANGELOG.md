@@ -1,5 +1,9 @@
 # OSGL HTTP Change Log
 
+1.3.0
+* Allow get status from `H.Response` #15
+* Minor performance improvement
+
 1.2.3 - 15/Jan/2018
 * Minor performance improvement
 

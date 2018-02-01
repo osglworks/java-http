@@ -62,6 +62,13 @@ public class H {
 
         private static EnumSet<Method> unsafeMethods = EnumSet.of(POST, DELETE, PUT, PATCH);
         private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, PATCH, DELETE);
+        private static final int HC_GET = GET.name().hashCode();
+        private static final int HC_HEAD = HEAD.name().hashCode();
+        private static final int HC_POST = POST.name().hashCode();
+        private static final int HC_DELETE = DELETE.name().hashCode();
+        private static final int HC_PUT = PUT.name().hashCode();
+        private static final int HC_PATCH = PATCH.name().hashCode();
+        private static final int HC_OPTIONS = OPTIONS.name().hashCode();
 
         /**
          * Returns if this http method is safe, meaning it
@@ -113,6 +120,20 @@ public class H {
                         }
                     }
                 }
+            }
+            int hc = method.hashCode();
+            if (HC_GET == hc) {
+                return GET;
+            } else if (HC_POST == hc) {
+                return POST;
+            } else if (HC_OPTIONS == hc) {
+                return OPTIONS;
+            } else if (HC_PUT == hc) {
+                return PUT;
+            } else if (HC_DELETE == hc) {
+                return DELETE;
+            } else if (HC_HEAD == hc) {
+                return HEAD;
             }
             // performance tune, most of the case we don't need the
             // toUpperCase() call
@@ -1270,7 +1291,12 @@ public class H {
         }
 
         public boolean isText() {
-            return JSON == this || contentType.startsWith("text/") || S.eq("application/json", contentType);
+            return JSON == this || HTML == this || CSV == this
+                    || JAVASCRIPT == this
+                    || TXT == this
+                    || XML == this
+                    || contentType.startsWith("text/")
+                    || S.eq("application/json", contentType);
         }
 
         /**
@@ -4016,6 +4042,15 @@ public class H {
             return me();
         }
 
+        /**
+         * Get the status code of this response.
+         *
+         * If the status code has not been set to this response,
+         * `-1` should be returned.
+         *
+         * @return the status code of this response
+         */
+        public abstract int statusCode();
 
         /**
          * Adds a response header with the given name and value.

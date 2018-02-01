@@ -23,11 +23,11 @@ package org.osgl.http.servlet;
 import org.osgl.http.H;
 import org.osgl.util.E;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import javax.servlet.http.HttpServletResponse;
 
 public class ServletResponse extends H.Response<ServletResponse> {
     @Override
@@ -36,6 +36,7 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     private HttpServletResponse r;
+    private int statusCode = -1;
 
     public ServletResponse(HttpServletResponse resp) {
         E.NPE(resp);
@@ -142,7 +143,13 @@ public class ServletResponse extends H.Response<ServletResponse> {
     @Override
     public ServletResponse status(int sc) {
         r.setStatus(sc);
+        statusCode = sc;
         return this;
+    }
+
+    @Override
+    public int statusCode() {
+        return statusCode;
     }
 
     @Override
