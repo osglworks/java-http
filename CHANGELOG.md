@@ -4,6 +4,7 @@
 * Allow get status from `H.Response` #15
 * Minor performance improvement
 * Add `H.KV.entrySet()` method
+* update osgl-tool dependency to 1.6.1
 
 1.2.3 - 15/Jan/2018
 * Minor performance improvement

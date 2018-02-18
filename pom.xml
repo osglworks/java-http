@@ -42,6 +42,7 @@
     </scm>
 
     <properties>
+        <osgl-tool.version>1.6.1</osgl-tool.version>
         <osgl-storage.version>1.5.0</osgl-storage.version>
         <osgl-cache.version>1.1.0</osgl-cache.version>
         <servlet.version>2.5</servlet.version>
@@ -62,6 +63,12 @@
             <artifactId>osgl-storage</artifactId>
             <version>${osgl-storage.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgl</groupId>
+            <artifactId>osgl-tool</artifactId>
+            <version>1.6.1</version>
         </dependency>
 
         <dependency>
