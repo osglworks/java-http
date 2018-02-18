@@ -2137,6 +2137,15 @@ public class H {
         }
 
         /**
+         * Returns the entry set of internal data map
+         *
+         * @return entry set
+         */
+        public Set<Map.Entry<String, String>> entrySet() {
+            return data.entrySet();
+        }
+
+        /**
          * Returns {@code true} if internal data map is empty
          * @return if data is empty
          */
