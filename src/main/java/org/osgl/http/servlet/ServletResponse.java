@@ -22,6 +22,7 @@ package org.osgl.http.servlet;
 
 import org.osgl.http.H;
 import org.osgl.util.E;
+import org.osgl.util.Output;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -74,6 +75,15 @@ public class ServletResponse extends H.Response<ServletResponse> {
     protected OutputStream createOutputStream() {
         try {
             return r.getOutputStream();
+        } catch (IOException e) {
+            throw E.ioException(e);
+        }
+    }
+
+    @Override
+    protected Output createOutput() {
+        try {
+            return Output.Adaptors.of(r.getOutputStream());
         } catch (IOException e) {
             throw E.ioException(e);
         }

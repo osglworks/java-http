@@ -3645,6 +3645,7 @@ public class H {
         private State state = State.NONE;
         protected volatile OutputStream outputStream;
         protected volatile Writer writer;
+        protected volatile Output output;
         private Object context;
 
 
@@ -3677,9 +3678,19 @@ public class H {
             return state == State.WRITER;
         }
 
+        public boolean outputCreated() {
+            return state == State.OUTPUT;
+        }
+
+        public boolean outputStreamCreated() {
+            return state == State.STREAM;
+        }
+
         protected abstract OutputStream createOutputStream();
 
-        private void createWriter() {
+        protected abstract Output createOutput();
+
+        private void ensureWriter() {
             if (null != writer) {
                 return;
             }
@@ -3695,7 +3706,17 @@ public class H {
         }
 
         /**
-         * Returns the output stream to write to the response
+         * Returns the output to write to the response.
+         * @return output of the response.
+         * @throws IllegalStateException if {@link #writer()} or {@link #outputStream()} is called already
+         * @throws UnexpectedIOException if there are IO exception
+         */
+        public Output output() {
+            return state.output(this);
+        }
+
+        /**
+         * Returns the output stream to write to the response.
          *
          * @return output stream to the response
          * @throws java.lang.IllegalStateException          if
@@ -4152,6 +4173,13 @@ public class H {
         public abstract void commit();
 
         /**
+         * Close output or outputStream or writer opened on this response
+         */
+        public void close() {
+            state.close(this);
+        }
+
+        /**
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
          *
@@ -4186,10 +4214,36 @@ public class H {
 
         private enum State {
             NONE,
+            OUTPUT() {
+                @Override
+                OutputStream outputStream(Response resp) {
+                    throw new IllegalStateException("outputStream() already called");
+                }
+
+                @Override
+                Writer writer(Response resp) {
+                    throw new IllegalStateException("writer() already called");
+                }
+
+                @Override
+                void close(Response resp) {
+                    IO.close(resp.output);
+                }
+            },
             STREAM() {
                 @Override
                 Writer writer(Response resp) {
                     throw new IllegalStateException("writer() already called");
+                }
+
+                @Override
+                Output output(Response resp) {
+                    throw new IllegalStateException("output() already called");
+                }
+
+                @Override
+                void close(Response resp) {
+                    IO.close(resp.outputStream);
                 }
             },
             WRITER() {
@@ -4197,19 +4251,43 @@ public class H {
                 OutputStream outputStream(Response resp) {
                     throw new IllegalStateException("outputStream() already called");
                 }
+
+                @Override
+                Output output(Response resp) {
+                    throw new IllegalStateException("output() already called");
+                }
+
+                @Override
+                void close(Response resp) {
+                    IO.close(resp.writer);
+                }
             };
 
+            Output output(Response resp) {
+                if (null == resp.output) {
+                    resp.output = resp.createOutput();
+                    resp.state = OUTPUT;
+                }
+                return resp.output;
+            }
+
             OutputStream outputStream(Response resp) {
-                resp.outputStream = resp.createOutputStream();
-                resp.state = STREAM;
+                if (null == resp.outputStream) {
+                    resp.outputStream = resp.createOutputStream();
+                    resp.state = STREAM;
+                }
                 return resp.outputStream;
             }
 
             Writer writer(Response resp) {
-                resp.createWriter();
-                resp.state = WRITER;
+                if (null == resp.writer) {
+                    resp.ensureWriter();
+                    resp.state = WRITER;
+                }
                 return resp.writer;
             }
+
+            void close(Response resp) {}
         }
 
     } // eof Response
