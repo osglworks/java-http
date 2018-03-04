@@ -1,6 +1,6 @@
 # OSGL HTTP Change Log
 
-1.4.0
+1.4.0 4/Mar/2018
 * Update to osgl-tool-1.7.0
 * `H.Response` - add `output()` method #17
 
