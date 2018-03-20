@@ -4217,12 +4217,12 @@ public class H {
             OUTPUT() {
                 @Override
                 OutputStream outputStream(Response resp) {
-                    throw new IllegalStateException("outputStream() already called");
+                    return output(resp).asOutputStream();
                 }
 
                 @Override
                 Writer writer(Response resp) {
-                    throw new IllegalStateException("writer() already called");
+                    return output(resp).asWriter();
                 }
 
                 @Override
@@ -4233,12 +4233,12 @@ public class H {
             STREAM() {
                 @Override
                 Writer writer(Response resp) {
-                    throw new IllegalStateException("writer() already called");
+                    return new OutputStreamWriter(outputStream(resp));
                 }
 
                 @Override
                 Output output(Response resp) {
-                    throw new IllegalStateException("output() already called");
+                    return new OutputStreamOutput(outputStream(resp));
                 }
 
                 @Override
@@ -4249,12 +4249,12 @@ public class H {
             WRITER() {
                 @Override
                 OutputStream outputStream(Response resp) {
-                    throw new IllegalStateException("outputStream() already called");
+                    return new WriterOutputStream(writer(resp));
                 }
 
                 @Override
                 Output output(Response resp) {
-                    throw new IllegalStateException("output() already called");
+                    return new WriterOutput(writer(resp));
                 }
 
                 @Override

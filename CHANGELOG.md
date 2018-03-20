@@ -1,5 +1,11 @@
 # OSGL HTTP Change Log
 
+1.5.0
+* update to osgl-tool-1.8.0
+* `H.Response` changes in state management of creating outputstream, writer and output #18
+
+* `H.Response` changes in state management of creating outputstream, writer and output
+
 1.4.0 4/Mar/2018
 * Update to osgl-tool-1.7.0
 * `H.Response` - add `output()` method #17
