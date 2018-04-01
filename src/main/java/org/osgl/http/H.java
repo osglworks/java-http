@@ -1461,6 +1461,24 @@ public class H {
                 fmt = FORM_URL_ENCODED;
             } else if (contentType.contains("multipart/form-data") || contentType.contains("multipart/mixed")) {
                 fmt = FORM_MULTIPART_DATA;
+            } else if (contentType.contains("image")) {
+                if (contentType.contains("png")) {
+                    fmt = PNG;
+                } else if (contentType.contains("jpg") || contentType.contains("jpeg")) {
+                    fmt = JPG;
+                } else if (contentType.contains("gif")) {
+                    fmt = GIF;
+                } else if (contentType.contains("svg")) {
+                    fmt = SVG;
+                } else if (contentType.contains("ico")) {
+                    fmt = ICO;
+                } else if (contentType.contains("bmp")) {
+                    fmt = BMP;
+                } else {
+                    // just specify an arbitrary sub type
+                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
+                    fmt = PNG;
+                }
             } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
                 fmt = XML;
             } else if (contentType.contains("text/plain")) {
@@ -1479,6 +1497,40 @@ public class H {
                 fmt = DOCX;
             } else if (contentType.contains("rtf")) {
                 fmt = RTF;
+            } else if (contentType.contains("audio")) {
+                if (contentType.contains("mpeg3")) {
+                    fmt = MP3;
+                } else if (contentType.contains("mp")) {
+                    fmt = MPA;
+                } else if (contentType.contains("mod")) {
+                    fmt = MOD;
+                } else if (contentType.contains("wav")) {
+                    fmt = WAV;
+                } else if (contentType.contains("ogg")) {
+                    fmt = OGA;
+                } else {
+                    // just specify an arbitrary sub type
+                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
+                    fmt = WAV;
+                }
+            } else if (contentType.contains("video")) {
+                if (contentType.contains("mp4")) {
+                    fmt = MP4;
+                } else if (contentType.contains("webm")) {
+                    fmt = WEBM;
+                } else if (contentType.contains("ogg")) {
+                    fmt = OGV;
+                } else if (contentType.contains("mov")) {
+                    fmt = MOV;
+                } else if (contentType.contains("mpeg")) {
+                    fmt = MPG;
+                } else if (contentType.contains("x-flv")) {
+                    fmt = FLV;
+                } else {
+                    // just specify an arbitrary sub type
+                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
+                    fmt = MP4;
+                }
             }
 
             return fmt;
@@ -1644,11 +1696,15 @@ public class H {
         public static final Format MPG = valueOf("mpg");
         public static final Format AVI = valueOf("avi");
         public static final Format FLV = valueOf("flv");
+        public static final Format OGV = valueOf("ogv");
+        public static final Format WEBM = valueOf("webm");
 
         // -- common audios
         public static final Format MP3 = valueOf("mp3");
         public static final Format MPA = valueOf("mpa");
         public static final Format WAV = valueOf("wav");
+        public static final Format MOD = valueOf("mod");
+        public static final Format OGA = valueOf("oga");
 
 
         /**
