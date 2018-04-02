@@ -2,7 +2,7 @@
 
 1.5.2 -
 * `H.Request.resolveAcceptFormat()` cannot resolve format for image types #19
-
+* update osgl-tool to 1.9.0
 
 1.5.1 - 25/Mar/2018
 * udpate osgl-tool to 1.8.1
