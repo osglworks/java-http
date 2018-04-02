@@ -23,7 +23,7 @@
 
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>1.5.2-SNAPSHOT</version>
+    <version>1.5.2</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
