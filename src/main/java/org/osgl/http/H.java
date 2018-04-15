@@ -3183,8 +3183,8 @@ public class H {
         private String domain;
 
         /**
-         * Returns the domain of the request
-         * @return domain
+         * Alias of {@link #host()}.
+         * @return host of this request
          */
         public String domain() {
             if (null == domain) resolveHostPort();
@@ -3192,8 +3192,29 @@ public class H {
         }
 
         /**
-         * Returns the port
-         * @return port
+         * Returns host of this request.
+         *
+         * It will first check the `X-Forwarded-Host` header, if no value then check
+         * the `Host` header, if still no value then return empty string; otherwise
+         *
+         * 1. host will be the part before `:` of the value
+         * 2. port will be the part after `:` of the value
+         *
+         * @return host of this request
+         */
+        public String host() {
+            return domain();
+        }
+
+        /**
+         * Returns the port of this request.
+         *
+         * If port cannot be resolved, then it will return the default port:
+         * * 80 for no secure connection
+         * * 443 for secure connection
+         *
+         * @return port the port of this request
+         * @see #port()
          */
         public int port() {
             if (-1 == port) resolveHostPort();
@@ -3201,8 +3222,8 @@ public class H {
         }
 
         /**
-         * Returns remote ip address
-         * @return remote ip
+         * Returns remote ip address.
+         * @return remote ip of this request
          */
         protected abstract String _ip();
 
