@@ -26,6 +26,7 @@ import org.osgl.$;
 import org.osgl.cache.CacheService;
 import org.osgl.exception.NotAppliedException;
 import org.osgl.exception.UnexpectedIOException;
+import org.osgl.http.util.DefaultCurrentStateStore;
 import org.osgl.http.util.Path;
 import org.osgl.logging.LogManager;
 import org.osgl.logging.Logger;
@@ -56,6 +57,12 @@ public class H {
     public static final Version VERSION = Version.get();
 
     protected static final Logger logger = LogManager.get(Http.class);
+
+    private static CurrentStateStore current = new DefaultCurrentStateStore();
+
+    static void setCurrentStateStore(CurrentStateStore store) {
+        current = $.requireNotNull(store);
+    }
 
     public enum Method {
         GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT, _UNKNOWN_;
@@ -1735,17 +1742,12 @@ public class H {
         public static final Format UNKNOWN = new Format("unknown", "text/html") {
             @Override
             public String contentType() {
-                String s = Current.format();
-                if (!S.blank(s)) {
-                    return toContentType(s);
-                }
                 return "text/html";
             }
 
             @Override
             public String toString() {
-                String s = Current.format();
-                return null == s ? name() : s;
+                return name();
             }
         };
         /**
@@ -2066,44 +2068,6 @@ public class H {
         public Cookie comment(String comment) {
             this.comment = comment;
             return this;
-        }
-
-        private static void ensureInit() {
-            if (!Current.cookieMapInitialized()) {
-                Request req = Request.current();
-                E.illegalStateIf(null == req);
-                req._initCookieMap();
-            }
-        }
-
-        /**
-         * Add a cookie to the current context
-         *
-         * @param cookie the cookie
-         */
-        public static void set(Cookie cookie) {
-            ensureInit();
-            Current.setCookie(cookie.name(), cookie);
-        }
-
-        /**
-         * Get a cookie from current context by name
-         *
-         * @param name the cookie name
-         * @return a cookie with the name specified
-         */
-        public static Cookie get(String name) {
-            ensureInit();
-            return Current.getCookie(name);
-        }
-
-        /**
-         * Returns all cookies from current context
-         * @return all cookies
-         */
-        public static Collection<Cookie> all() {
-            ensureInit();
-            return Current.cookies();
         }
 
         /**
@@ -2582,7 +2546,7 @@ public class H {
          * @return the current session instance
          */
         public static Session current() {
-            return Current.session();
+            return current.session();
         }
 
         /**
@@ -2592,7 +2556,7 @@ public class H {
          * @param session the session to be set to current execution context
          */
         public static void current(Session session) {
-            Current.session(session);
+            current.session(session);
         }
 
         // used to parse session data persisted in the cookie value
@@ -2890,7 +2854,7 @@ public class H {
          * @return the current flash instance
          */
         public static Flash current() {
-            return Current.flash();
+            return current.flash();
         }
 
         /**
@@ -2900,7 +2864,7 @@ public class H {
          * @param flash the flash to be set to current execution context
          */
         public static void current(Flash flash) {
-            Current.flash(flash);
+            current.flash(flash);
         }
 
         /**
@@ -3649,7 +3613,7 @@ public class H {
          */
         @SuppressWarnings("unchecked")
         public static <T extends Request> T current() {
-            return (T) Current.request();
+            return (T) current.request();
         }
 
         /**
@@ -3660,7 +3624,7 @@ public class H {
          * @param request the request to be set to current execution context
          */
         public static <T extends Request> void current(T request) {
-            Current.request(request);
+            current.request(request);
         }
 
         private enum State {
@@ -4244,7 +4208,7 @@ public class H {
          */
         @SuppressWarnings("unchecked")
         public static <T extends Response> T current() {
-            return (T) Current.response();
+            return (T) current.response();
         }
 
         /**
@@ -4255,7 +4219,7 @@ public class H {
          * @param <T> the sub type of response
          */
         public static <T extends Response> void current(T response) {
-            Current.response(response);
+            current.response(response);
         }
 
         protected T me() {
@@ -4355,7 +4319,7 @@ public class H {
      * Clear all current context
      */
     public static void cleanUp() {
-        Current.clear();
+        current.clear();
     }
 
 }

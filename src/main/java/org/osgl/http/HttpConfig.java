@@ -50,6 +50,10 @@ public class HttpConfig {
         return defLocale;
     }
 
+    public static void setCurrentStateStore(CurrentStateStore currentStateStore) {
+        H.setCurrentStateStore(currentStateStore);
+    }
+
     private static String domain;
 
     public static void domain(String domain) {

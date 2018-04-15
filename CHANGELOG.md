@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.6.0
+* Add `CurrentStateStorage` interface to replace previous `Current`
+
 1.5.2 - 02/Apr/2018
 * `H.Request.resolveAcceptFormat()` cannot resolve format for image types #19
 * update osgl-tool to 1.9.0
