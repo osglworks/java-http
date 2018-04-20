@@ -1825,15 +1825,15 @@ public class H {
         // default is non-persistent cookie
         private int maxAge = -1;
 
-        private boolean secure;
+        private boolean secure = HttpConfig.secure();
 
-        private String path;
+        private String path = "/";
 
         private String domain;
 
         private String value;
 
-        private boolean httpOnly;
+        private boolean httpOnly = true;
 
         private int version;
 
@@ -1849,6 +1849,13 @@ public class H {
             E.NPE(name);
             this.name = name;
             this.value = null == value ? "" : value;
+        }
+
+        public Cookie(String name, String value, String path) {
+            E.NPE(name);
+            this.name = name;
+            this.value = null == value ? "" : value;
+            this.path = path;
         }
 
         public Cookie(String name, String value, int maxAge, boolean secure, String path, String domain, boolean httpOnly) {

@@ -1,6 +1,7 @@
 # OSGL HTTP Change Log
 
 1.6.0
+* Update `H.Cookie` default value #23
 * Add `incr()` and `decr()` method in `H.Cookie` #20
 * Add `CurrentStateStorage` interface to replace previous `Current` #21
 * By default allow `HttpConfig.xForwardedAllowed` #22
