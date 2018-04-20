@@ -2105,6 +2105,13 @@ public class H {
             return this;
         }
 
+        public Cookie addToResponse() {
+            H.Response resp = H.Response.current();
+            E.illegalStateIf(null == resp, "No current response.");
+            resp.addCookie(this);
+            return this;
+        }
+
         /**
          * The function object namespace
          */
