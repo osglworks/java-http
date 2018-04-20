@@ -1037,7 +1037,7 @@ public class H {
             /**
              * {@code "Proxy-Client-IP"}
              */
-            public static final String PROXY_CLIENT_IP = "Proxy-Client-ip";
+            public static final String PROXY_CLIENT_IP = "Proxy-Client-Ip";
             /**
              * {@code "Proxy-Connection"}
              */
@@ -2067,6 +2067,34 @@ public class H {
 
         public Cookie comment(String comment) {
             this.comment = comment;
+            return this;
+        }
+
+        public Cookie decr() {
+            E.illegalStateIfNot(S.isInt(value), "cannot call decr() on cookie which value is not an integer");
+            int n = Integer.parseInt(value) - 1;
+            value = S.string(n);
+            return this;
+        }
+
+        public Cookie decr(int n) {
+            E.illegalStateIfNot(S.isInt(value), "cannot call decr(int) on cookie which value is not an integer");
+            int n0 = Integer.parseInt(value) - n;
+            value = S.string(n0);
+            return this;
+        }
+
+        public Cookie incr() {
+            E.illegalStateIfNot(S.isInt(value), "cannot call incr() on cookie which value is not an integer");
+            int n = Integer.parseInt(value) + 1;
+            value = S.string(n);
+            return this;
+        }
+
+        public Cookie incr(int n) {
+            E.illegalStateIfNot(S.isInt(value), "cannot call incr(int) on cookie which value is not an integer");
+            int n0 = Integer.parseInt(value) + n;
+            value = S.string(n0);
             return this;
         }
 
@@ -3298,6 +3326,19 @@ public class H {
             return secure() ? 443 : 80;
         }
 
+        /**
+         * Returns the remote ip address of this request.
+         *
+         * The resolving process of remote ip address:
+         * 1. Check `X-Forwarded-For` header, if no value or value is `unknown` then
+         * 2. Check `Proxy-Client-ip`, if no value or value is `unknown` then
+         * 3. Check `Wl-Proxy-Client-Ip`, if no value or value is `unknown` then
+         * 4. Check `HTTP_CLIENT_IP`, if no value or value is `unknown` then
+         * 5. Check `HTTP_X_FORWARDED_FOR`, if no value or value is `unknown` then
+         * 6. return the ip address passed by underline network stack, e.g. netty or undertow
+         *
+         * @return remote ip of this request
+         */
         public String ip() {
             if (null == ip) {
                 resolveIp();
@@ -3305,6 +3346,10 @@ public class H {
             return ip;
         }
 
+        /**
+         * Returns useragent string of this request
+         * @return useragent string
+         */
         public String userAgentStr() {
             return header(USER_AGENT);
         }
@@ -4000,27 +4045,27 @@ public class H {
          * After using this method, the response should be considered
          * to be committed and should not be written to.
          *
-         * @param sc  the error status code
+         * @param statusCode  the error status code
          * @param msg the descriptive message
          * @return the response itself
          * @throws org.osgl.exception.UnexpectedIOException If an input or output exception occurs
          * @throws IllegalStateException                    If the response was committed
          */
-        public abstract T sendError(int sc, String msg);
+        public abstract T sendError(int statusCode, String msg);
 
         /**
          * Sames as {@link #sendError(int, String)} but accept message format
          * arguments
          *
-         * @param sc   the error status code
+         * @param statusCode   the error status code
          * @param msg  the descriptive message template
          * @param args the descriptive message arguments
          * @return the response itself
          * @throws org.osgl.exception.UnexpectedIOException If an input or output exception occurs
          * @throws IllegalStateException                    If the response was committed
          */
-        public T sendError(int sc, String msg, Object... args) {
-            return sendError(sc, S.fmt(msg, args));
+        public T sendError(int statusCode, String msg, Object... args) {
+            return sendError(statusCode, S.fmt(msg, args));
         }
 
         /**
@@ -4031,12 +4076,11 @@ public class H {
          * After using this method, the response should be considered
          * to be committed and should not be written to.
          *
-         * @param sc the error status code
+         * @param statusCode the error status code
          * @return the response itself
          * @throws org.osgl.exception.UnexpectedIOException If the response was committed before this method call
          */
-
-        public abstract T sendError(int sc);
+        public abstract T sendError(int statusCode);
 
         /**
          * Sends a temporary redirect response to the client using the
@@ -4087,12 +4131,12 @@ public class H {
          * <p> The container clears the buffer and sets the Location header, preserving
          * cookies and other headers.
          *
-         * @param sc the status code
+         * @param statusCode the status code
          * @return the response itself
          * @see #sendError
          * @see #status(int)
          */
-        public abstract T status(int sc);
+        public abstract T status(int statusCode);
 
         /**
          * Sets the status for this response.  This method is used to
@@ -4104,12 +4148,12 @@ public class H {
          * <p> The container clears the buffer and sets the Location header, preserving
          * cookies and other headers.
          *
-         * @param s the status
+         * @param status the status
          * @return the response itself
          * @see #sendError
          */
-        public T status(Status s) {
-            status(s.code());
+        public T status(Status status) {
+            status(status.code());
             return me();
         }
 

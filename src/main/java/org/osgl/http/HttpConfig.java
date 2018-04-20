@@ -124,7 +124,7 @@ public class HttpConfig {
         return ctx;
     }
 
-    private static String xForwardedAllowed;
+    private static String xForwardedAllowed = "all";
 
     /**
      * Set allowed proxy ips for x-forwarded headers

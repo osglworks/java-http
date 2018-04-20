@@ -115,9 +115,9 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public ServletResponse sendError(int sc, String msg) {
+    public ServletResponse sendError(int statusCode, String msg) {
         try {
-            r.sendError(sc, msg);
+            r.sendError(statusCode, msg);
         } catch (IOException e) {
             throw E.ioException(e);
         }
@@ -125,9 +125,9 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public ServletResponse sendError(int sc) {
+    public ServletResponse sendError(int statusCode) {
         try {
-            r.sendError(sc);
+            r.sendError(statusCode);
         } catch (IOException e) {
             throw E.ioException(e);
         }
@@ -151,9 +151,9 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public ServletResponse status(int sc) {
-        r.setStatus(sc);
-        statusCode = sc;
+    public ServletResponse status(int statusCode) {
+        r.setStatus(statusCode);
+        this.statusCode = statusCode;
         return this;
     }
 
