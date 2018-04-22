@@ -2377,6 +2377,86 @@ public class H {
             return id;
         }
 
+        /**
+         * Decrement the value associated with `key` by one.
+         *
+         * If there is no value associated with `key` then put number `-1` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session decr(String key) {
+            return decr(key, 1);
+        }
+
+        /**
+         * Decrement the value associated with `key` by `n`.
+         *
+         * If there is no value associated with `key` then put number `-n` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session decr(String key, int n) {
+            String v = get(key);
+            if (null == v) {
+                put(key, -n);
+            } else {
+                E.illegalStateIfNot(S.isInt(v), "Cannot decr on value that is no an integer");
+                int n0 = Integer.parseInt(v);
+                put(key, n0 - n);
+            }
+            return this;
+        }
+
+        /**
+         * Increment the value associated with `key` by one.
+         *
+         * If there is no value associated with `key` then put number `1` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session incr(String key) {
+            return incr(key, 1);
+        }
+
+        /**
+         * Increment the value associated with `key` by `n`.
+         *
+         * If there is no value associated with `key` then put number `n` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session incr(String key, int n) {
+            String v = get(key);
+            if (null == v) {
+                put(key, n);
+            } else {
+                E.illegalStateIfNot(S.isInt(v), "Cannot incr on value that is no an integer");
+                int n0 = Integer.parseInt(v);
+                put(key, n0 + n);
+            }
+            return this;
+        }
+
         // ------- regular session attribute operations ---
 
         /**

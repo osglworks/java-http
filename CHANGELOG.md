@@ -1,6 +1,7 @@
 # OSGL HTTP Change Log
 
 1.6.0
+* Add `incr()` and `decr()` method to `H.Session` #25
 * Add `H.Cookie.addToResponse()` method #24
 * Update `H.Cookie` default value #23
 * Add `incr()` and `decr()` method in `H.Cookie` #20
