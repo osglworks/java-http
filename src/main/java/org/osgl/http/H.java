@@ -3835,7 +3835,7 @@ public class H {
          * @return the response instance itself
          */
         public T context(Object context) {
-            this.context = $.notNull(context);
+            this.context = $.requireNotNull(context);
             return me();
         }
 
@@ -4319,7 +4319,7 @@ public class H {
          * @return the response itself
          */
         public T writeText(String content) {
-            _setContentType(Format.TXT.contentType());
+            initContentType(Format.TXT.contentType());
             return writeContent(content);
         }
 
@@ -4330,7 +4330,7 @@ public class H {
          * @return the response itself
          */
         public T writeHtml(String content) {
-            _setContentType(Format.HTML.contentType());
+            initContentType(Format.HTML.contentType());
             return writeContent(content);
         }
 
@@ -4341,7 +4341,7 @@ public class H {
          * @return the response itself
          */
         public T writeJSON(String content) {
-            _setContentType(Format.JSON.contentType());
+            initContentType(Format.JSON.contentType());
             return writeContent(content);
         }
 
