@@ -8,6 +8,7 @@
 * Add `incr()` and `decr()` method in `H.Cookie` #20
 * Add `CurrentStateStorage` interface to replace previous `Current` #21
 * By default allow `HttpConfig.xForwardedAllowed` #22
+* update osgl-tool to 1.11.1
 
 1.5.2 - 02/Apr/2018
 * `H.Request.resolveAcceptFormat()` cannot resolve format for image types #19

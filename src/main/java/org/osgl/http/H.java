@@ -32,6 +32,7 @@ import org.osgl.logging.LogManager;
 import org.osgl.logging.Logger;
 import org.osgl.storage.ISObject;
 import org.osgl.util.*;
+import org.osgl.util.converter.TypeConverterRegistry;
 import org.osgl.web.util.UserAgent;
 import osgl.version.Version;
 import osgl.version.Versioned;
@@ -54,6 +55,11 @@ import java.util.regex.Pattern;
 @Versioned
 public class H {
 
+    static {
+        registerTypeConverters();
+    }
+
+
     public static final Version VERSION = Version.get();
 
     protected static final Logger logger = LogManager.get(Http.class);
@@ -66,6 +72,10 @@ public class H {
 
     public enum Method {
         GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT, _UNKNOWN_;
+
+        static {
+            registerTypeConverters();
+        }
 
         private static EnumSet<Method> unsafeMethods = EnumSet.of(POST, DELETE, PUT, PATCH);
         private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, PATCH, DELETE);
@@ -157,6 +167,10 @@ public class H {
     } // eof Method
 
     public static final class Status implements Serializable, Comparable<Status> {
+
+        static {
+            registerTypeConverters();
+        }
 
         public enum Code {
             ;
@@ -1241,6 +1255,10 @@ public class H {
      * Specify the format of the requested content type
      */
     public static class Format implements Serializable {
+
+        static {
+            registerTypeConverters();
+        }
 
         private static final Map<String, Format> predefined = new LinkedHashMap<String, Format>();
 
@@ -4479,6 +4497,29 @@ public class H {
      */
     public static void cleanUp() {
         current.clear();
+    }
+
+    private static boolean registered;
+    public static void registerTypeConverters() {
+        if (!registered) {
+            TypeConverterRegistry.INSTANCE.register(new $.TypeConverter<Integer, H.Status>() {
+                @Override
+                public H.Status convert(Integer o) {
+                    return null == o ? null : H.Status.of(o);
+                }
+            }).register(new $.TypeConverter<String, H.Format>() {
+                @Override
+                public H.Format convert(String o) {
+                    return null == o ? null : H.Format.of(o);
+                }
+            }).register(new $.TypeConverter<String, H.Method>() {
+                @Override
+                public Method convert(String s) {
+                    return Method.valueOfIgnoreCase(s);
+                }
+            });
+            registered = true;
+        }
     }
 
 }
