@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.6.1 13/May/2018
+* update osgl-tool to 1.12.0
+
 1.6.0
 * `H.Response.writeText()` shall set `Content-Type` to `text/plaintext` #26
 * Add `incr()` and `decr()` method to `H.Session` #25
