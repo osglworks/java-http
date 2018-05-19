@@ -1,7 +1,9 @@
 # OSGL HTTP Change Log
 
 1.7.0
-* update osgl-tool to 1.13.0
+* update osgl-tool to 1.13.1
+* update osgl-storage to 1.6.0
+* update osgl-cache to 1.4.0
 * Replace FastStr with String in Path utility #27
 
 1.6.1 13/May/2018
