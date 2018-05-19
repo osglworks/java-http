@@ -23,7 +23,6 @@ package org.osgl.http.util;
 import org.osgl.http.H;
 import org.osgl.http.HttpConfig;
 import org.osgl.util.E;
-import org.osgl.util.FastStr;
 import org.osgl.util.ListBuilder;
 import org.osgl.util.S;
 
@@ -191,16 +190,16 @@ public enum Path {
         return sb.toString();
     }
 
-    public static Iterator<CharSequence> tokenizer(final char[] buf) {
+    public static Iterator<String> tokenizer(final char[] buf) {
         return tokenizer(buf, 0);
     }
 
-    public static Iterator<CharSequence> tokenizer(final char[] buf, final int start) {
+    public static Iterator<String> tokenizer(final char[] buf, final int start) {
         return tokenizer(buf, start, '/', '?');
     }
 
-    public static Iterator<CharSequence> tokenizer(final char[] buf, final int start, final char separator, final char terminator) {
-        return new Iterator<CharSequence>() {
+    public static Iterator<String> tokenizer(final char[] buf, final int start, final char separator, final char terminator) {
+        return new Iterator<String>() {
             int cursor = start;
             final int len = buf.length;
             int begin = -1;
@@ -218,16 +217,16 @@ public enum Path {
             }
 
             @Override
-            public CharSequence next() {
+            public String next() {
                 for (int i = cursor; i < len; ++i) {
                     char c = buf[i];
                     if (c == terminator) {
                         cursor = len;
-                        return (FastStr.unsafeOf(buf, begin, i));
+                        return (new String(buf, begin, i - begin));
                     }
                     if (c == separator) {
                         if (begin > -1) {
-                            CharSequence ret = (FastStr.unsafeOf(buf, begin, i));
+                            String ret = (new String(buf, begin, i - begin));
                             cursor = i + 1;
                             begin = -1;
                             return ret;
@@ -238,7 +237,7 @@ public enum Path {
                     if (i == len - 1 && begin != -1) {
                         // the last one
                         cursor = len;
-                        return(FastStr.unsafeOf(buf, begin, i + 1));
+                        return(new String(buf, begin, i + 1 - begin));
                     }
                 }
                 throw new NoSuchElementException();
@@ -251,27 +250,27 @@ public enum Path {
         };
     }
 
-    public static List<CharSequence> tokenize(char[] buf) {
+    public static List<String> tokenize(char[] buf) {
         return tokenize(buf, 0);
     }
 
-    public static List<CharSequence> tokenize(char[] buf, int start) {
+    public static List<String> tokenize(char[] buf, int start) {
         return tokenize(buf, start, '/', '?');
     }
 
-    public static List<CharSequence> tokenize(char[] buf, int start, char separator, char terminator) {
+    public static List<String> tokenize(char[] buf, int start, char separator, char terminator) {
         int len = buf.length;
-        ListBuilder<CharSequence> lb = ListBuilder.create();
+        ListBuilder<String> lb = ListBuilder.create();
         int begin = -1;
         for (int i = start; i < len; ++i) {
             char c = buf[i];
             if (c == terminator) {
-                lb.add(FastStr.unsafeOf(buf, begin, i));
+                lb.add(new String(buf, begin, i - begin));
                 break;
             }
             if (c == separator) {
                 if (begin > -1) {
-                    lb.add(FastStr.unsafeOf(buf, begin, i));
+                    lb.add(new String(buf, begin, i - begin));
                 }
                 begin = -1;
             } else if (begin == -1) {
@@ -279,7 +278,7 @@ public enum Path {
             }
             if (i == len - 1 && begin != -1) {
                 // the last one
-                lb.add(FastStr.unsafeOf(buf, begin, i + 1));
+                lb.add(new String(buf, begin, i + 1 - begin));
             }
         }
         return lb.toList();
