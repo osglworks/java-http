@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.7.1
+* Allow H.Response implementation to overwrite the create `Writer` logic #28
+
 1.7.0
 * update osgl-tool to 1.13.1
 * update osgl-storage to 1.6.0

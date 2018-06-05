@@ -3886,6 +3886,13 @@ public class H {
 
         protected abstract OutputStream createOutputStream();
 
+        protected Writer createWriter() {
+            outputStream = createOutputStream();
+            String charset = characterEncoding();
+            Charset cs = null == charset ? Charsets.UTF_8 : Charset.forName(charset);
+            return new OutputStreamWriter(outputStream, cs);
+        }
+
         protected abstract Output createOutput();
 
         private void ensureWriter() {
@@ -3896,10 +3903,7 @@ public class H {
                 if (null != writer) {
                     return;
                 }
-                outputStream = createOutputStream();
-                String charset = characterEncoding();
-                Charset cs = null == charset ? Charsets.UTF_8 : Charset.forName(charset);
-                writer = new OutputStreamWriter(outputStream, cs);
+                writer = createWriter();
             }
         }
 
