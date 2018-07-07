@@ -1474,9 +1474,9 @@ public class H {
 
         private static Format resolve_(Format def, String contentType) {
             Format fmt = def;
-            if (S.blank(contentType)) {
-                fmt = HTML;
-            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html") || contentType.startsWith("*/*")) {
+            if (S.blank(contentType) || "*/*".equals(contentType)) {
+                fmt = UNKNOWN;
+            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html")) {
                 fmt = HTML;
             } else if (contentType.contains("text/css")) {
                 fmt = CSS;

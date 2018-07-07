@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.8.1
+* Content type `*/*` or blank shall be resolved to `H.Format.UNKNOWN` #29
+
 1.8.0 14/Jun/2018
 * update osgl-tool to 1.15.1
 

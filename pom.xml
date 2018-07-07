@@ -42,7 +42,7 @@
     </scm>
 
     <properties>
-        <osgl-tool.version>1.15.1</osgl-tool.version>
+        <osgl-tool.version>1.18.0-SNAPSHOT</osgl-tool.version>
         <osgl-storage.version>1.7.0</osgl-storage.version>
         <osgl-cache.version>1.5.0</osgl-cache.version>
         <servlet.version>2.5</servlet.version>
