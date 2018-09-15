@@ -4061,24 +4061,27 @@ public class H {
         }
 
         public T contentDisposition(String filename, boolean inline) {
+            return header(CONTENT_DISPOSITION, buildContentDispositionString(filename, inline));
+        }
+
+        public String buildContentDispositionString(String filename, boolean inline) {
             final String type = inline ? "inline" : "attachment";
             if (S.blank(filename)) {
-                header(CONTENT_DISPOSITION, type);
+                return type;
             } else {
                 if(canAsciiEncode(filename)) {
                     String contentDisposition = "%s; filename=\"%s\"";
-                    header(CONTENT_DISPOSITION, S.fmt(contentDisposition, type, filename));
+                    return S.fmt(contentDisposition, type, filename);
                 } else {
                     final String encoding = characterEncoding();
                     String contentDisposition = "%1$s; filename*="+encoding+"''%2$s; filename=\"%2$s\"";
                     try {
-                        header(CONTENT_DISPOSITION, S.fmt(contentDisposition, type, URLEncoder.encode(filename, encoding)));
+                        return S.fmt(contentDisposition, type, URLEncoder.encode(filename, encoding));
                     } catch (UnsupportedEncodingException e) {
                         throw E.encodingException(e);
                     }
                 }
             }
-            return me();
         }
 
         /**
@@ -4096,8 +4099,7 @@ public class H {
          * @return this response
          */
         public T etag(String etag) {
-            header(ETAG, etag);
-            return me();
+            return header(ETAG, etag);
         }
 
         /**
