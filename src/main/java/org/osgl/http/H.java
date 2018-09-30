@@ -3109,13 +3109,18 @@ public class H {
 
         private Map<String, Cookie> cookies = new HashMap<>();
 
+        @Override
+        public String toString() {
+            return S.concat("[", method(), "]", url());
+        }
+
         /**
          * Attach a context object to the request instance
          * @param context the context object
          * @return the request instance itself
          */
         public T context(Object context) {
-            this.context = $.notNull(context);
+            this.context = $.requireNotNull(context);
             return me();
         }
 
