@@ -52,6 +52,12 @@ public class ServletRequest extends H.Request {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public Iterable<String> headerNames() {
+        return C.enumerable(r.getHeaderNames());
+    }
+
+    @Override
     public String path() {
         String s1 = r.getServletPath();
         String s2 = r.getPathInfo();

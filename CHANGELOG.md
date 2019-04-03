@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.10.0
+* H.Request - add headerNames() method that returns all header names presented in the request #30
+
 1.9.0 30/Oct/2018
 * update to osgl-tool-1.18.0
 * Content type `*/*` or blank shall be resolved to `H.Format.UNKNOWN` #29

@@ -3175,6 +3175,13 @@ public class H {
         public abstract Iterable<String> headers(String name);
 
         /**
+         * Returns all header names presented in this request.
+         *
+         * @return all header names as an {@link Iterable} of String.
+         */
+        public abstract Iterable<String> headerNames();
+
+        /**
          * Return the request {@link org.osgl.http.H.Format accept}
          *
          * @return the request accept
