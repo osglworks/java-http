@@ -1,6 +1,7 @@
 # OSGL HTTP Change Log
 
 1.10.0
+* update to osgl-tool-1.19.2
 * H.Request - add headerNames() method that returns all header names presented in the request #30
 
 1.9.0 30/Oct/2018
