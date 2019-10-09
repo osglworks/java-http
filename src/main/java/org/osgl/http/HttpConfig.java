@@ -32,7 +32,7 @@ public class HttpConfig {
     private static CacheService sessionCache;
 
     public static void setSessionCache(CacheService cache) {
-        sessionCache = $.notNull(cache);
+        sessionCache = $.requireNotNull(cache);
     }
 
     public static CacheService sessionCache() {

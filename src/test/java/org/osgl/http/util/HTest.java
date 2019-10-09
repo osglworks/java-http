@@ -22,6 +22,7 @@ package org.osgl.http.util;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.osgl.http.H;
 import org.osgl.http.HttpConfig;
 import org.osgl.http.TestBase;
 
@@ -58,6 +59,14 @@ public class HTest extends TestBase {
         HttpConfig.secure(true);
         HttpConfig.securePort(8080);
         eq("https://osgl.org:8080/foo", Path.fullUrl("foo"));
+    }
+
+    @Test
+    public void testYamlContentType() {
+        eq("text/vnd.yaml", H.Format.YAML.contentType());
+        eq(H.Format.YAML, H.Format.resolve("text/x-yaml"));
+        eq(H.Format.YAML, H.Format.resolve("text/yaml"));
+        eq(H.Format.YAML, H.Format.resolve("application/x-yaml"));
     }
 
 }

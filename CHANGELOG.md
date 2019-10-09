@@ -1,5 +1,9 @@
 # OSGL HTTP Change Log
 
+1.11.0
+* update osgl-tool to 1.21.0
+* Support YAML Format #31
+
 1.10.0
 * update to osgl-tool-1.19.2
 * H.Request - add headerNames() method that returns all header names presented in the request #30

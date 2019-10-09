@@ -1316,10 +1316,13 @@ public class H {
         }
 
         public boolean isText() {
-            return JSON == this || HTML == this || CSV == this
+            return JSON == this
+                    || HTML == this
+                    || CSV == this
                     || JAVASCRIPT == this
                     || TXT == this
                     || XML == this
+                    || YAML == this
                     || contentType.startsWith("text/")
                     || S.eq("application/json", contentType);
         }
@@ -1522,6 +1525,8 @@ public class H {
                 fmt = DOCX;
             } else if (contentType.contains("rtf")) {
                 fmt = RTF;
+            } else if (contentType.contains("yaml")) {
+                fmt = YAML;
             } else if (contentType.contains("audio")) {
                 if (contentType.contains("mpeg3")) {
                     fmt = MP3;
@@ -1610,6 +1615,11 @@ public class H {
          */
         @Deprecated
         public static final Format json = JSON;
+
+        /**
+         * The "text/vnd.yaml" content format
+         */
+        public static final Format YAML = new Format("yaml", "text/vnd.yaml");
 
         /**
          * The "text/css" content format
@@ -1778,6 +1788,7 @@ public class H {
             public static final int HTML = Format.HTML.ordinal;
             public static final int XML = Format.XML.ordinal;
             public static final int JSON = Format.JSON.ordinal;
+            public static final int YAML = Format.YAML.ordinal;
             public static final int XLS = Format.XLS.ordinal;
             public static final int XLSX = Format.XLSX.ordinal;
             public static final int DOC = Format.DOC.ordinal;
@@ -1807,7 +1818,7 @@ public class H {
     }
 
     public enum MediaType {
-        CSS, CSV, DOC, DOCX, HTML, JAVASCRIPT, JSON, PDF, TXT, XLS, XLSX, XML;
+        CSS, CSV, DOC, DOCX, HTML, JAVASCRIPT, JSON, PDF, TXT, XLS, XLSX, XML, YAML;
         private Format fmt;
         private MediaType() {
             fmt = Format.valueOf(name());
@@ -3199,7 +3210,7 @@ public class H {
          * @return this request
          */
         public T accept(Format fmt) {
-            this.accept = $.notNull(fmt);
+            this.accept = $.requireNotNull(fmt);
             return me();
         }
 
@@ -3762,7 +3773,7 @@ public class H {
             String s = header(AUTHORIZATION);
             if (null != s && s.startsWith("Basic")) {
                 String data = s.substring(6);
-                String[] decodedData = new String(Codec.decodeBASE64(data)).split(":");
+                String[] decodedData = new String(Codec.decodeBase64(data)).split(":");
                 user = decodedData.length > 0 ? decodedData[0] : null;
                 password = decodedData.length > 1 ? decodedData[1] : null;
             }
@@ -4378,6 +4389,11 @@ public class H {
          */
         public T writeJSON(String content) {
             initContentType(Format.JSON.contentType());
+            return writeContent(content);
+        }
+
+        public T writeYAML(String content) {
+            initContentType(Format.YAML.contentType());
             return writeContent(content);
         }
 

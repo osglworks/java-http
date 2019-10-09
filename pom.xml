@@ -23,7 +23,7 @@
 
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>1.10.1-SNAPSHOT</version>
+    <version>1.11.0-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
@@ -42,27 +42,19 @@
     </scm>
 
     <properties>
-        <osgl-tool.version>1.19.2</osgl-tool.version>
-        <osgl-storage.version>1.9.0</osgl-storage.version>
+        <osgl-tool.version>1.21.0-SNAPSHOT</osgl-tool.version>
         <osgl-cache.version>1.7.0</osgl-cache.version>
+        <osgl-logging.version>1.4.0</osgl-logging.version>
         <servlet.version>2.5</servlet.version>
     </properties>
 
 
     <dependencies>
-
         <dependency>
             <groupId>com.carrotsearch</groupId>
             <artifactId>junit-benchmarks</artifactId>
             <version>0.7.2</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.osgl</groupId>
-            <artifactId>osgl-storage</artifactId>
-            <version>${osgl-storage.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -75,6 +67,12 @@
             <groupId>org.osgl</groupId>
             <artifactId>osgl-cache</artifactId>
             <version>${osgl-cache.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgl</groupId>
+            <artifactId>osgl-logging</artifactId>
+            <version>${osgl-logging.version}</version>
         </dependency>
 
         <dependency>
