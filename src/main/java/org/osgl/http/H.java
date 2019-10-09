@@ -9,9 +9,9 @@ package org.osgl.http;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -286,7 +286,7 @@ public class H {
          * @return if this status error
          */
         public boolean isError() {
-            return code > 399 && code < 600;
+            return isClientError() || isServerError();
         }
 
         /**
@@ -294,7 +294,7 @@ public class H {
          * @return if this status server error
          */
         public boolean isServerError() {
-            return code > 499 && code < 600;
+            return code / 100 == 5;
         }
 
         /**
@@ -302,7 +302,7 @@ public class H {
          * @return if this status client error
          */
         public boolean isClientError() {
-            return code > 399 && code < 500;
+            return code / 100 == 4;
         }
 
         /**
@@ -310,7 +310,7 @@ public class H {
          * @return if this status success series
          */
         public boolean isSuccess() {
-            return code > 199 && code < 300;
+            return code / 100 == 2;
         }
 
         /**
@@ -318,7 +318,7 @@ public class H {
          * @return if this status redirect series
          */
         public boolean isRedirect() {
-            return code > 299 && code < 400;
+            return code / 100 == 3;
         }
 
         /**
@@ -326,7 +326,7 @@ public class H {
          * @return is this status informational series
          */
         public boolean isInformational() {
-            return code > 99 && code < 200;
+            return code / 100 == 1;
         }
 
         /**
@@ -1960,10 +1960,10 @@ public class H {
         /**
          * Specifies a path for the cookie
          * to which the client should return the cookie.
-         * 
+         *
          * <p>The cookie is visible to all the pages in the directory
          * you specify, and all the pages in that directory's subdirectories.
-         * 
+         *
          * <p>Consult RFC 2109 (available on the Internet) for more
          * information on setting path names for cookies.
          *
@@ -1993,7 +1993,7 @@ public class H {
          * after that many seconds have passed. Note that the value is
          * the <i>maximum</i> age when the cookie will expire, not the cookie's
          * current age.
-         * 
+         *
          * <p>A negative value means
          * that the cookie is not stored persistently and will be deleted
          * when the Web browser exits. A zero value causes the cookie
@@ -2041,7 +2041,7 @@ public class H {
         /**
          * Indicates to the browser whether the cookie should only be sent
          * using a secure protocol, such as HTTPS or SSL.
-         * 
+         *
          * <p>The default value is <code>false</code>.
          *
          * @param secure the cookie secure requirement
@@ -2071,10 +2071,10 @@ public class H {
         /**
          * Sets the version of the cookie protocol that this Cookie complies
          * with.
-         * 
+         *
          * <p>Version 0 complies with the original Netscape cookie
          * specification. Version 1 complies with RFC 2109.
-         * 
+         *
          * <p>Since RFC 2109 is still somewhat new, consider
          * version 1 as experimental; do not use it yet on production sites.
          *
@@ -2352,7 +2352,7 @@ public class H {
      * client side as a cookie. This means the entire size of the
      * information stored in session including names and values shall
      * not exceed 4096 bytes.
-     * 
+     *
      * <p>To store typed value or big value, use the cache methods
      * of the session class. However it is subject to the implementation
      * to decide whether cache methods are provided and how it is
@@ -2574,7 +2574,7 @@ public class H {
          * Store an object into cache using key specified. The key will be
          * appended with session id, so that it distinct between caching
          * using the same key but in different user sessions.
-         * 
+         *
          * <p>The object is cached for {@link org.osgl.cache.CacheService#setDefaultTTL(int) default} ttl</p>
          *
          * @param key the key to cache the object
@@ -2802,7 +2802,7 @@ public class H {
      * for one session interaction. This feature of flash makes it very good
      * for server to pass one time information to client, e.g. form submission
      * error message etc.
-     * 
+     *
      * <p>Like {@link org.osgl.http.H.Session}, you can store only String type
      * information to flash, and the total number of information stored
      * including keys and values shall not exceed 4096 bytes as flash is
@@ -3163,7 +3163,7 @@ public class H {
          * multiple headers with the same name, then the first
          * one is returned. If there is no header has the name
          * then {@code null} is returned
-         * 
+         *
          * <p>Note header name is case insensitive</p>
          *
          * @param name the name of the header
@@ -3177,7 +3177,7 @@ public class H {
          * an {@link java.lang.Iterable} of {@code String}. If there
          * is no header has the name specified, then an empty iterable
          * is returned.
-         * 
+         *
          * <p>Note header name is case insensitive</p>
          *
          * @param name the name of the header
@@ -3268,7 +3268,7 @@ public class H {
          * context path. The path is a composite of
          * {@link javax.servlet.http.HttpServletRequest#getServletPath()}
          * and {@link javax.servlet.http.HttpServletRequest#getPathInfo()}
-         * 
+         *
          * <p>
          * The path starts with "/" but not end with "/"
          * </p>
@@ -4053,7 +4053,7 @@ public class H {
          * encoding used, for example, <code>text/html; charset=ISO-8859-4</code>.
          * If content type has already been set to the response, this method
          * will update the content type with the new value
-         * 
+         *
          * <p>this method must be called before calling {@link #writer()}
          * or {@link #outputStream()}</p>
          *
@@ -4156,7 +4156,8 @@ public class H {
          *
          * @param cookie the Cookie to return to the client
          */
-        public abstract T addCookie(H.Cookie cookie);
+        public abstract void addCookie(H.Cookie cookie);
+
 
         /**
          * Returns a boolean indicating whether the named response header
@@ -4260,29 +4261,6 @@ public class H {
          * @see #addHeader
          */
         public abstract T header(String name, String value);
-
-        /**
-         * Set a response header with a {@link Header} instance.
-         *
-         * If the header had already been set, the old value will be overwitten
-         * by the new header instance
-         *
-         * @param header the header to be set on the response
-         * @return this response
-         */
-        public abstract T header(H.Header header);
-
-        /**
-         * Append specified values to header specified by name.
-         *
-         * If there is no header found by name specified then create a
-         * header and put all values into it
-         *
-         * @param name the name of the header
-         * @param values the values to be append to existing header values
-         * @return this response
-         */
-        public abstract T addHeaderValues(String name, String ... values);
 
         /**
          * Sets the status code for this response.  This method is used to
@@ -4544,35 +4522,6 @@ public class H {
         }
 
     } // eof Response
-
-    /**
-     * Encapsulate HTTP computation states
-     */
-    public interface Context {
-        /**
-         * Returns the {@link Request request} object
-         * @return the request
-         */
-        Request req();
-
-        /**
-         * Returns the {@link Response response} object
-         * @return the response
-         */
-        Response resp();
-
-        /**
-         * Returns the {@link Session session} object
-         * @return the session
-         */
-        Session session();
-
-        /**
-         * Returns the {@link Flash flash} object
-         * @return the flash
-         */
-        Flash flash();
-    }
 
     H() {
     }
