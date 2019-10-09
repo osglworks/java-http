@@ -1,15 +1,41 @@
 package org.osgl.http;
 
+/*-
+ * #%L
+ * OSGL HTTP
+ * %%
+ * Copyright (C) 2017 OSGL (Open Source General Library)
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import static org.osgl.http.H.Header.Names.*;
+
 import org.osgl.$;
 import org.osgl.cache.CacheService;
 import org.osgl.exception.NotAppliedException;
 import org.osgl.exception.UnexpectedIOException;
+import org.osgl.http.util.DefaultCurrentStateStore;
 import org.osgl.http.util.Path;
-import org.osgl.logging.L;
+import org.osgl.logging.LogManager;
 import org.osgl.logging.Logger;
 import org.osgl.storage.ISObject;
 import org.osgl.util.*;
+import org.osgl.util.converter.TypeConverterRegistry;
 import org.osgl.web.util.UserAgent;
+import osgl.version.Version;
+import osgl.version.Versioned;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -22,21 +48,44 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.osgl.http.H.Header.Names.*;
-
 /**
  * The namespace to access Http features.
  * Alias of {@link org.osgl.http.Http}
  */
+@Versioned
 public class H {
 
-    protected static final Logger logger = L.get(Http.class);
+    static {
+        registerTypeConverters();
+    }
+
+
+    public static final Version VERSION = Version.get();
+
+    protected static final Logger logger = LogManager.get(Http.class);
+
+    private static CurrentStateStore current = new DefaultCurrentStateStore();
+
+    static void setCurrentStateStore(CurrentStateStore store) {
+        current = $.requireNotNull(store);
+    }
 
     public enum Method {
         GET, HEAD, POST, DELETE, PUT, PATCH, TRACE, OPTIONS, CONNECT, _UNKNOWN_;
 
+        static {
+            registerTypeConverters();
+        }
+
         private static EnumSet<Method> unsafeMethods = EnumSet.of(POST, DELETE, PUT, PATCH);
         private static EnumSet<Method> actionMethods = EnumSet.of(GET, POST, PUT, PATCH, DELETE);
+        private static final int HC_GET = GET.name().hashCode();
+        private static final int HC_HEAD = HEAD.name().hashCode();
+        private static final int HC_POST = POST.name().hashCode();
+        private static final int HC_DELETE = DELETE.name().hashCode();
+        private static final int HC_PUT = PUT.name().hashCode();
+        private static final int HC_PATCH = PATCH.name().hashCode();
+        private static final int HC_OPTIONS = OPTIONS.name().hashCode();
 
         /**
          * Returns if this http method is safe, meaning it
@@ -89,7 +138,26 @@ public class H {
                     }
                 }
             }
-            Method m = methods.get(method.toUpperCase());
+            int hc = method.hashCode();
+            if (HC_GET == hc) {
+                return GET;
+            } else if (HC_POST == hc) {
+                return POST;
+            } else if (HC_OPTIONS == hc) {
+                return OPTIONS;
+            } else if (HC_PUT == hc) {
+                return PUT;
+            } else if (HC_DELETE == hc) {
+                return DELETE;
+            } else if (HC_HEAD == hc) {
+                return HEAD;
+            }
+            // performance tune, most of the case we don't need the
+            // toUpperCase() call
+            Method m = methods.get(method);
+            if (null == m) {
+                m = methods.get(method.toUpperCase());
+            }
             return null != m ? m : _UNKNOWN_;
         }
 
@@ -99,6 +167,10 @@ public class H {
     } // eof Method
 
     public static final class Status implements Serializable, Comparable<Status> {
+
+        static {
+            registerTypeConverters();
+        }
 
         public enum Code {
             ;
@@ -762,7 +834,7 @@ public class H {
         return Status.valueOf(n);
     }
 
-    public static final class Header implements Serializable {
+    public static final class Header implements java.io.Serializable {
 
         private static final long serialVersionUID = -3987421318751857114L;
 
@@ -857,6 +929,10 @@ public class H {
              */
             public static final String CONTENT_ENCODING = "Content-Encoding";
             /**
+             * {@code "Content-MD5"}
+             */
+            public static final String CONTENT_MD5 = "Content-Md5";
+            /**
              * {@code "Content-Language"}
              */
             public static final String CONTENT_LANGUAGE = "Content-Language";
@@ -869,13 +945,13 @@ public class H {
              */
             public static final String CONTENT_LOCATION = "Content-Location";
             /**
+             * {@code "Content-Security-Policy"}
+             */
+            public static final String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
+            /**
              * {@code "Content-Transfer-Encoding"}
              */
             public static final String CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
-            /**
-             * {@code "Content-MD5"}
-             */
-            public static final String CONTENT_MD5 = "Content-Md5";
             /**
              * {@code "Content-Range"}
              */
@@ -975,7 +1051,7 @@ public class H {
             /**
              * {@code "Proxy-Client-IP"}
              */
-            public static final String PROXY_CLIENT_IP = "Proxy-Client-ip";
+            public static final String PROXY_CLIENT_IP = "Proxy-Client-Ip";
             /**
              * {@code "Proxy-Connection"}
              */
@@ -1180,6 +1256,10 @@ public class H {
      */
     public static class Format implements Serializable {
 
+        static {
+            registerTypeConverters();
+        }
+
         private static final Map<String, Format> predefined = new LinkedHashMap<String, Format>();
 
         private int ordinal;
@@ -1236,7 +1316,15 @@ public class H {
         }
 
         public boolean isText() {
-            return JSON == this || contentType.startsWith("text/") || S.eq("application/json", contentType);
+            return JSON == this
+                    || HTML == this
+                    || CSV == this
+                    || JAVASCRIPT == this
+                    || TXT == this
+                    || XML == this
+                    || YAML == this
+                    || contentType.startsWith("text/")
+                    || S.eq("application/json", contentType);
         }
 
         /**
@@ -1389,18 +1477,38 @@ public class H {
 
         private static Format resolve_(Format def, String contentType) {
             Format fmt = def;
-            if (S.blank(contentType)) {
+            if (S.blank(contentType) || "*/*".equals(contentType)) {
+                fmt = UNKNOWN;
+            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html")) {
                 fmt = HTML;
-            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html") || contentType.startsWith("*/*")) {
-                fmt = HTML;
-            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
-                fmt = XML;
+            } else if (contentType.contains("text/css")) {
+                fmt = CSS;
             } else if (contentType.contains("application/json") || contentType.contains("text/javascript")) {
                 fmt = JSON;
             } else if (contentType.contains("application/x-www-form-urlencoded")) {
                 fmt = FORM_URL_ENCODED;
             } else if (contentType.contains("multipart/form-data") || contentType.contains("multipart/mixed")) {
                 fmt = FORM_MULTIPART_DATA;
+            } else if (contentType.contains("image")) {
+                if (contentType.contains("png")) {
+                    fmt = PNG;
+                } else if (contentType.contains("jpg") || contentType.contains("jpeg")) {
+                    fmt = JPG;
+                } else if (contentType.contains("gif")) {
+                    fmt = GIF;
+                } else if (contentType.contains("svg")) {
+                    fmt = SVG;
+                } else if (contentType.contains("ico")) {
+                    fmt = ICO;
+                } else if (contentType.contains("bmp")) {
+                    fmt = BMP;
+                } else {
+                    // just specify an arbitrary sub type
+                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
+                    fmt = PNG;
+                }
+            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
+                fmt = XML;
             } else if (contentType.contains("text/plain")) {
                 fmt = TXT;
             } else if (contentType.contains("csv") || contentType.contains("comma-separated-values")) {
@@ -1417,6 +1525,42 @@ public class H {
                 fmt = DOCX;
             } else if (contentType.contains("rtf")) {
                 fmt = RTF;
+            } else if (contentType.contains("yaml")) {
+                fmt = YAML;
+            } else if (contentType.contains("audio")) {
+                if (contentType.contains("mpeg3")) {
+                    fmt = MP3;
+                } else if (contentType.contains("mp")) {
+                    fmt = MPA;
+                } else if (contentType.contains("mod")) {
+                    fmt = MOD;
+                } else if (contentType.contains("wav")) {
+                    fmt = WAV;
+                } else if (contentType.contains("ogg")) {
+                    fmt = OGA;
+                } else {
+                    // just specify an arbitrary sub type
+                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
+                    fmt = WAV;
+                }
+            } else if (contentType.contains("video")) {
+                if (contentType.contains("mp4")) {
+                    fmt = MP4;
+                } else if (contentType.contains("webm")) {
+                    fmt = WEBM;
+                } else if (contentType.contains("ogg")) {
+                    fmt = OGV;
+                } else if (contentType.contains("mov")) {
+                    fmt = MOV;
+                } else if (contentType.contains("mpeg")) {
+                    fmt = MPG;
+                } else if (contentType.contains("x-flv")) {
+                    fmt = FLV;
+                } else {
+                    // just specify an arbitrary sub type
+                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
+                    fmt = MP4;
+                }
             }
 
             return fmt;
@@ -1471,6 +1615,11 @@ public class H {
          */
         @Deprecated
         public static final Format json = JSON;
+
+        /**
+         * The "text/vnd.yaml" content format
+         */
+        public static final Format YAML = new Format("yaml", "text/vnd.yaml");
 
         /**
          * The "text/css" content format
@@ -1582,11 +1731,15 @@ public class H {
         public static final Format MPG = valueOf("mpg");
         public static final Format AVI = valueOf("avi");
         public static final Format FLV = valueOf("flv");
+        public static final Format OGV = valueOf("ogv");
+        public static final Format WEBM = valueOf("webm");
 
         // -- common audios
         public static final Format MP3 = valueOf("mp3");
         public static final Format MPA = valueOf("mpa");
         public static final Format WAV = valueOf("wav");
+        public static final Format MOD = valueOf("mod");
+        public static final Format OGA = valueOf("oga");
 
 
         /**
@@ -1617,17 +1770,12 @@ public class H {
         public static final Format UNKNOWN = new Format("unknown", "text/html") {
             @Override
             public String contentType() {
-                String s = Current.format();
-                if (!S.blank(s)) {
-                    return toContentType(s);
-                }
                 return "text/html";
             }
 
             @Override
             public String toString() {
-                String s = Current.format();
-                return null == s ? name() : s;
+                return name();
             }
         };
         /**
@@ -1640,6 +1788,7 @@ public class H {
             public static final int HTML = Format.HTML.ordinal;
             public static final int XML = Format.XML.ordinal;
             public static final int JSON = Format.JSON.ordinal;
+            public static final int YAML = Format.YAML.ordinal;
             public static final int XLS = Format.XLS.ordinal;
             public static final int XLSX = Format.XLSX.ordinal;
             public static final int DOC = Format.DOC.ordinal;
@@ -1669,7 +1818,7 @@ public class H {
     }
 
     public enum MediaType {
-        CSS, CSV, DOC, DOCX, HTML, JAVASCRIPT, JSON, PDF, TXT, XLS, XLSX, XML;
+        CSS, CSV, DOC, DOCX, HTML, JAVASCRIPT, JSON, PDF, TXT, XLS, XLSX, XML, YAML;
         private Format fmt;
         private MediaType() {
             fmt = Format.valueOf(name());
@@ -1705,15 +1854,15 @@ public class H {
         // default is non-persistent cookie
         private int maxAge = -1;
 
-        private boolean secure;
+        private boolean secure = HttpConfig.secure();
 
-        private String path;
+        private String path = "/";
 
         private String domain;
 
         private String value;
 
-        private boolean httpOnly;
+        private boolean httpOnly = true;
 
         private int version;
 
@@ -1729,6 +1878,13 @@ public class H {
             E.NPE(name);
             this.name = name;
             this.value = null == value ? "" : value;
+        }
+
+        public Cookie(String name, String value, String path) {
+            E.NPE(name);
+            this.name = name;
+            this.value = null == value ? "" : value;
+            this.path = path;
         }
 
         public Cookie(String name, String value, int maxAge, boolean secure, String path, String domain, boolean httpOnly) {
@@ -1950,42 +2106,39 @@ public class H {
             return this;
         }
 
-        private static void ensureInit() {
-            if (!Current.cookieMapInitialized()) {
-                Request req = Request.current();
-                E.illegalStateIf(null == req);
-                req._initCookieMap();
-            }
+        public Cookie decr() {
+            E.illegalStateIfNot(S.isInt(value), "cannot call decr() on cookie which value is not an integer");
+            int n = Integer.parseInt(value) - 1;
+            value = S.string(n);
+            return this;
         }
 
-        /**
-         * Add a cookie to the current context
-         *
-         * @param cookie the cookie
-         */
-        public static void set(Cookie cookie) {
-            ensureInit();
-            Current.setCookie(cookie.name(), cookie);
+        public Cookie decr(int n) {
+            E.illegalStateIfNot(S.isInt(value), "cannot call decr(int) on cookie which value is not an integer");
+            int n0 = Integer.parseInt(value) - n;
+            value = S.string(n0);
+            return this;
         }
 
-        /**
-         * Get a cookie from current context by name
-         *
-         * @param name the cookie name
-         * @return a cookie with the name specified
-         */
-        public static Cookie get(String name) {
-            ensureInit();
-            return Current.getCookie(name);
+        public Cookie incr() {
+            E.illegalStateIfNot(S.isInt(value), "cannot call incr() on cookie which value is not an integer");
+            int n = Integer.parseInt(value) + 1;
+            value = S.string(n);
+            return this;
         }
 
-        /**
-         * Returns all cookies from current context
-         * @return all cookies
-         */
-        public static Collection<Cookie> all() {
-            ensureInit();
-            return Current.cookies();
+        public Cookie incr(int n) {
+            E.illegalStateIfNot(S.isInt(value), "cannot call incr(int) on cookie which value is not an integer");
+            int n0 = Integer.parseInt(value) + n;
+            value = S.string(n0);
+            return this;
+        }
+
+        public Cookie addToResponse() {
+            H.Response resp = H.Response.current();
+            E.illegalStateIf(null == resp, "No current response.");
+            resp.addCookie(this);
+            return this;
         }
 
         /**
@@ -2007,7 +2160,7 @@ public class H {
 
     public static class KV<T extends KV> implements Serializable {
         private static final long serialVersionUID = 891504755320699989L;
-        protected Map<String, String> data = C.newMap();
+        protected Map<String, String> data = new HashMap<>();
         private boolean dirty = false;
 
         private KV() {}
@@ -2072,6 +2225,15 @@ public class H {
          */
         public Set<String> keySet() {
             return data.keySet();
+        }
+
+        /**
+         * Returns the entry set of internal data map
+         *
+         * @return entry set
+         */
+        public Set<Map.Entry<String, String>> entrySet() {
+            return data.entrySet();
         }
 
         /**
@@ -2242,6 +2404,86 @@ public class H {
                 }
             }
             return id;
+        }
+
+        /**
+         * Decrement the value associated with `key` by one.
+         *
+         * If there is no value associated with `key` then put number `-1` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session decr(String key) {
+            return decr(key, 1);
+        }
+
+        /**
+         * Decrement the value associated with `key` by `n`.
+         *
+         * If there is no value associated with `key` then put number `-n` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session decr(String key, int n) {
+            String v = get(key);
+            if (null == v) {
+                put(key, -n);
+            } else {
+                E.illegalStateIfNot(S.isInt(v), "Cannot decr on value that is no an integer");
+                int n0 = Integer.parseInt(v);
+                put(key, n0 - n);
+            }
+            return this;
+        }
+
+        /**
+         * Increment the value associated with `key` by one.
+         *
+         * If there is no value associated with `key` then put number `1` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session incr(String key) {
+            return incr(key, 1);
+        }
+
+        /**
+         * Increment the value associated with `key` by `n`.
+         *
+         * If there is no value associated with `key` then put number `n` for `key` in
+         * the session.
+         *
+         * If the existing value associated with `key` is not an integer then raise `IllegalStateExeption`.
+         *
+         * @param key
+         *      the key to get the existing value and associate the new value
+         * @return this session instance
+         */
+        public Session incr(String key, int n) {
+            String v = get(key);
+            if (null == v) {
+                put(key, n);
+            } else {
+                E.illegalStateIfNot(S.isInt(v), "Cannot incr on value that is no an integer");
+                int n0 = Integer.parseInt(v);
+                put(key, n0 + n);
+            }
+            return this;
         }
 
         // ------- regular session attribute operations ---
@@ -2455,7 +2697,7 @@ public class H {
          * @return the current session instance
          */
         public static Session current() {
-            return Current.session();
+            return current.session();
         }
 
         /**
@@ -2465,7 +2707,7 @@ public class H {
          * @param session the session to be set to current execution context
          */
         public static void current(Session session) {
-            Current.session(session);
+            current.session(session);
         }
 
         // used to parse session data persisted in the cookie value
@@ -2576,7 +2818,7 @@ public class H {
          * Stores the data that will be output to cookie so next time the user's request income
          * they will be available for the application to access
          */
-        private Map<String, String> out = C.newMap();
+        private Map<String, String> out = new HashMap<>();
 
 
         /**
@@ -2763,7 +3005,7 @@ public class H {
          * @return the current flash instance
          */
         public static Flash current() {
-            return Current.flash();
+            return current.flash();
         }
 
         /**
@@ -2773,7 +3015,7 @@ public class H {
          * @param flash the flash to be set to current execution context
          */
         public static void current(Flash flash) {
-            Current.flash(flash);
+            current.flash(flash);
         }
 
         /**
@@ -2876,7 +3118,12 @@ public class H {
 
         protected volatile Reader reader;
 
-        private Map<String, Cookie> cookies = C.newMap();
+        private Map<String, Cookie> cookies = new HashMap<>();
+
+        @Override
+        public String toString() {
+            return S.concat("[", method(), "]", url());
+        }
 
         /**
          * Attach a context object to the request instance
@@ -2884,7 +3131,7 @@ public class H {
          * @return the request instance itself
          */
         public T context(Object context) {
-            this.context = $.notNull(context);
+            this.context = $.requireNotNull(context);
             return me();
         }
 
@@ -2939,6 +3186,13 @@ public class H {
         public abstract Iterable<String> headers(String name);
 
         /**
+         * Returns all header names presented in this request.
+         *
+         * @return all header names as an {@link Iterable} of String.
+         */
+        public abstract Iterable<String> headerNames();
+
+        /**
          * Return the request {@link org.osgl.http.H.Format accept}
          *
          * @return the request accept
@@ -2956,7 +3210,7 @@ public class H {
          * @return this request
          */
         public T accept(Format fmt) {
-            this.accept = $.notNull(fmt);
+            this.accept = $.requireNotNull(fmt);
             return me();
         }
 
@@ -3092,8 +3346,8 @@ public class H {
         private String domain;
 
         /**
-         * Returns the domain of the request
-         * @return domain
+         * Alias of {@link #host()}.
+         * @return host of this request
          */
         public String domain() {
             if (null == domain) resolveHostPort();
@@ -3101,8 +3355,29 @@ public class H {
         }
 
         /**
-         * Returns the port
-         * @return port
+         * Returns host of this request.
+         *
+         * It will first check the `X-Forwarded-Host` header, if no value then check
+         * the `Host` header, if still no value then return empty string; otherwise
+         *
+         * 1. host will be the part before `:` of the value
+         * 2. port will be the part after `:` of the value
+         *
+         * @return host of this request
+         */
+        public String host() {
+            return domain();
+        }
+
+        /**
+         * Returns the port of this request.
+         *
+         * If port cannot be resolved, then it will return the default port:
+         * * 80 for no secure connection
+         * * 443 for secure connection
+         *
+         * @return port the port of this request
+         * @see #port()
          */
         public int port() {
             if (-1 == port) resolveHostPort();
@@ -3110,8 +3385,8 @@ public class H {
         }
 
         /**
-         * Returns remote ip address
-         * @return remote ip
+         * Returns remote ip address.
+         * @return remote ip of this request
          */
         protected abstract String _ip();
 
@@ -3186,6 +3461,19 @@ public class H {
             return secure() ? 443 : 80;
         }
 
+        /**
+         * Returns the remote ip address of this request.
+         *
+         * The resolving process of remote ip address:
+         * 1. Check `X-Forwarded-For` header, if no value or value is `unknown` then
+         * 2. Check `Proxy-Client-ip`, if no value or value is `unknown` then
+         * 3. Check `Wl-Proxy-Client-Ip`, if no value or value is `unknown` then
+         * 4. Check `HTTP_CLIENT_IP`, if no value or value is `unknown` then
+         * 5. Check `HTTP_X_FORWARDED_FOR`, if no value or value is `unknown` then
+         * 6. return the ip address passed by underline network stack, e.g. netty or undertow
+         *
+         * @return remote ip of this request
+         */
         public String ip() {
             if (null == ip) {
                 resolveIp();
@@ -3193,6 +3481,10 @@ public class H {
             return ip;
         }
 
+        /**
+         * Returns useragent string of this request
+         * @return useragent string
+         */
         public String userAgentStr() {
             return header(USER_AGENT);
         }
@@ -3481,7 +3773,7 @@ public class H {
             String s = header(AUTHORIZATION);
             if (null != s && s.startsWith("Basic")) {
                 String data = s.substring(6);
-                String[] decodedData = new String(Codec.decodeBASE64(data)).split(":");
+                String[] decodedData = new String(Codec.decodeBase64(data)).split(":");
                 user = decodedData.length > 0 ? decodedData[0] : null;
                 password = decodedData.length > 1 ? decodedData[1] : null;
             }
@@ -3522,7 +3814,7 @@ public class H {
          */
         @SuppressWarnings("unchecked")
         public static <T extends Request> T current() {
-            return (T) Current.request();
+            return (T) current.request();
         }
 
         /**
@@ -3533,7 +3825,7 @@ public class H {
          * @param request the request to be set to current execution context
          */
         public static <T extends Request> void current(T request) {
-            Current.request(request);
+            current.request(request);
         }
 
         private enum State {
@@ -3574,6 +3866,7 @@ public class H {
         private State state = State.NONE;
         protected volatile OutputStream outputStream;
         protected volatile Writer writer;
+        protected volatile Output output;
         private Object context;
 
 
@@ -3583,7 +3876,7 @@ public class H {
          * @return the response instance itself
          */
         public T context(Object context) {
-            this.context = $.notNull(context);
+            this.context = $.requireNotNull(context);
             return me();
         }
 
@@ -3606,9 +3899,26 @@ public class H {
             return state == State.WRITER;
         }
 
+        public boolean outputCreated() {
+            return state == State.OUTPUT;
+        }
+
+        public boolean outputStreamCreated() {
+            return state == State.STREAM;
+        }
+
         protected abstract OutputStream createOutputStream();
 
-        private void createWriter() {
+        protected Writer createWriter() {
+            outputStream = createOutputStream();
+            String charset = characterEncoding();
+            Charset cs = null == charset ? Charsets.UTF_8 : Charset.forName(charset);
+            return new OutputStreamWriter(outputStream, cs);
+        }
+
+        protected abstract Output createOutput();
+
+        private void ensureWriter() {
             if (null != writer) {
                 return;
             }
@@ -3616,15 +3926,22 @@ public class H {
                 if (null != writer) {
                     return;
                 }
-                outputStream = createOutputStream();
-                String charset = characterEncoding();
-                Charset cs = null == charset ? Charsets.UTF_8 : Charset.forName(charset);
-                writer = new OutputStreamWriter(outputStream, cs);
+                writer = createWriter();
             }
         }
 
         /**
-         * Returns the output stream to write to the response
+         * Returns the output to write to the response.
+         * @return output of the response.
+         * @throws IllegalStateException if {@link #writer()} or {@link #outputStream()} is called already
+         * @throws UnexpectedIOException if there are IO exception
+         */
+        public Output output() {
+            return state.output(this);
+        }
+
+        /**
+         * Returns the output stream to write to the response.
          *
          * @return output stream to the response
          * @throws java.lang.IllegalStateException          if
@@ -3767,24 +4084,27 @@ public class H {
         }
 
         public T contentDisposition(String filename, boolean inline) {
+            return header(CONTENT_DISPOSITION, buildContentDispositionString(filename, inline));
+        }
+
+        public String buildContentDispositionString(String filename, boolean inline) {
             final String type = inline ? "inline" : "attachment";
             if (S.blank(filename)) {
-                header(CONTENT_DISPOSITION, type);
+                return type;
             } else {
                 if(canAsciiEncode(filename)) {
                     String contentDisposition = "%s; filename=\"%s\"";
-                    header(CONTENT_DISPOSITION, S.fmt(contentDisposition, type, filename));
+                    return S.fmt(contentDisposition, type, filename);
                 } else {
                     final String encoding = characterEncoding();
                     String contentDisposition = "%1$s; filename*="+encoding+"''%2$s; filename=\"%2$s\"";
                     try {
-                        header(CONTENT_DISPOSITION, S.fmt(contentDisposition, type, URLEncoder.encode(filename, encoding)));
+                        return S.fmt(contentDisposition, type, URLEncoder.encode(filename, encoding));
                     } catch (UnsupportedEncodingException e) {
                         throw E.encodingException(e);
                     }
                 }
             }
-            return me();
         }
 
         /**
@@ -3802,8 +4122,7 @@ public class H {
          * @return this response
          */
         public T etag(String etag) {
-            header(ETAG, etag);
-            return me();
+            return header(ETAG, etag);
         }
 
         /**
@@ -3866,27 +4185,27 @@ public class H {
          * After using this method, the response should be considered
          * to be committed and should not be written to.
          *
-         * @param sc  the error status code
+         * @param statusCode  the error status code
          * @param msg the descriptive message
          * @return the response itself
          * @throws org.osgl.exception.UnexpectedIOException If an input or output exception occurs
          * @throws IllegalStateException                    If the response was committed
          */
-        public abstract T sendError(int sc, String msg);
+        public abstract T sendError(int statusCode, String msg);
 
         /**
          * Sames as {@link #sendError(int, String)} but accept message format
          * arguments
          *
-         * @param sc   the error status code
+         * @param statusCode   the error status code
          * @param msg  the descriptive message template
          * @param args the descriptive message arguments
          * @return the response itself
          * @throws org.osgl.exception.UnexpectedIOException If an input or output exception occurs
          * @throws IllegalStateException                    If the response was committed
          */
-        public T sendError(int sc, String msg, Object... args) {
-            return sendError(sc, S.fmt(msg, args));
+        public T sendError(int statusCode, String msg, Object... args) {
+            return sendError(statusCode, S.fmt(msg, args));
         }
 
         /**
@@ -3897,12 +4216,11 @@ public class H {
          * After using this method, the response should be considered
          * to be committed and should not be written to.
          *
-         * @param sc the error status code
+         * @param statusCode the error status code
          * @return the response itself
          * @throws org.osgl.exception.UnexpectedIOException If the response was committed before this method call
          */
-
-        public abstract T sendError(int sc);
+        public abstract T sendError(int statusCode);
 
         /**
          * Sends a temporary redirect response to the client using the
@@ -3976,12 +4294,12 @@ public class H {
          * <p> The container clears the buffer and sets the Location header, preserving
          * cookies and other headers.
          *
-         * @param sc the status code
+         * @param statusCode the status code
          * @return the response itself
          * @see #sendError
          * @see #status(int)
          */
-        public abstract T status(int sc);
+        public abstract T status(int statusCode);
 
         /**
          * Sets the status for this response.  This method is used to
@@ -3993,14 +4311,24 @@ public class H {
          * <p> The container clears the buffer and sets the Location header, preserving
          * cookies and other headers.
          *
-         * @param s the status
+         * @param status the status
          * @return the response itself
          * @see #sendError
          */
-        public T status(Status s) {
-            status(s.code());
+        public T status(Status status) {
+            status(status.code());
             return me();
         }
+
+        /**
+         * Get the status code of this response.
+         *
+         * If the status code has not been set to this response,
+         * `-1` should be returned.
+         *
+         * @return the status code of this response
+         */
+        public abstract int statusCode();
 
         /**
          * Adds a response header with the given name and value.
@@ -4060,7 +4388,7 @@ public class H {
          * @return the response itself
          */
         public T writeText(String content) {
-            _setContentType(Format.TXT.contentType());
+            initContentType(Format.TXT.contentType());
             return writeContent(content);
         }
 
@@ -4071,7 +4399,7 @@ public class H {
          * @return the response itself
          */
         public T writeHtml(String content) {
-            _setContentType(Format.HTML.contentType());
+            initContentType(Format.HTML.contentType());
             return writeContent(content);
         }
 
@@ -4082,7 +4410,12 @@ public class H {
          * @return the response itself
          */
         public T writeJSON(String content) {
-            _setContentType(Format.JSON.contentType());
+            initContentType(Format.JSON.contentType());
+            return writeContent(content);
+        }
+
+        public T writeYAML(String content) {
+            initContentType(Format.YAML.contentType());
             return writeContent(content);
         }
 
@@ -4093,6 +4426,13 @@ public class H {
         public abstract void commit();
 
         /**
+         * Close output or outputStream or writer opened on this response
+         */
+        public void close() {
+            state.close(this);
+        }
+
+        /**
          * Return a request instance of the current execution context,
          * For example from a {@link java.lang.ThreadLocal}
          *
@@ -4101,7 +4441,7 @@ public class H {
          */
         @SuppressWarnings("unchecked")
         public static <T extends Response> T current() {
-            return (T) Current.response();
+            return (T) current.response();
         }
 
         /**
@@ -4112,7 +4452,7 @@ public class H {
          * @param <T> the sub type of response
          */
         public static <T extends Response> void current(T response) {
-            Current.response(response);
+            current.response(response);
         }
 
         protected T me() {
@@ -4127,30 +4467,80 @@ public class H {
 
         private enum State {
             NONE,
+            OUTPUT() {
+                @Override
+                OutputStream outputStream(Response resp) {
+                    return output(resp).asOutputStream();
+                }
+
+                @Override
+                Writer writer(Response resp) {
+                    return output(resp).asWriter();
+                }
+
+                @Override
+                void close(Response resp) {
+                    IO.close(resp.output);
+                }
+            },
             STREAM() {
                 @Override
                 Writer writer(Response resp) {
-                    throw new IllegalStateException("writer() already called");
+                    return new OutputStreamWriter(outputStream(resp));
+                }
+
+                @Override
+                Output output(Response resp) {
+                    return new OutputStreamOutput(outputStream(resp));
+                }
+
+                @Override
+                void close(Response resp) {
+                    IO.close(resp.outputStream);
                 }
             },
             WRITER() {
                 @Override
                 OutputStream outputStream(Response resp) {
-                    throw new IllegalStateException("outputStream() already called");
+                    return new WriterOutputStream(writer(resp));
+                }
+
+                @Override
+                Output output(Response resp) {
+                    return new WriterOutput(writer(resp));
+                }
+
+                @Override
+                void close(Response resp) {
+                    IO.close(resp.writer);
                 }
             };
 
+            Output output(Response resp) {
+                if (null == resp.output) {
+                    resp.output = resp.createOutput();
+                    resp.state = OUTPUT;
+                }
+                return resp.output;
+            }
+
             OutputStream outputStream(Response resp) {
-                resp.outputStream = resp.createOutputStream();
-                resp.state = STREAM;
+                if (null == resp.outputStream) {
+                    resp.outputStream = resp.createOutputStream();
+                    resp.state = STREAM;
+                }
                 return resp.outputStream;
             }
 
             Writer writer(Response resp) {
-                resp.createWriter();
-                resp.state = WRITER;
+                if (null == resp.writer) {
+                    resp.ensureWriter();
+                    resp.state = WRITER;
+                }
                 return resp.writer;
             }
+
+            void close(Response resp) {}
         }
 
     } // eof Response
@@ -4191,7 +4581,30 @@ public class H {
      * Clear all current context
      */
     public static void cleanUp() {
-        Current.clear();
+        current.clear();
+    }
+
+    private static boolean registered;
+    public static void registerTypeConverters() {
+        if (!registered) {
+            TypeConverterRegistry.INSTANCE.register(new $.TypeConverter<Integer, H.Status>() {
+                @Override
+                public H.Status convert(Integer o) {
+                    return null == o ? null : H.Status.of(o);
+                }
+            }).register(new $.TypeConverter<String, H.Format>() {
+                @Override
+                public H.Format convert(String o) {
+                    return null == o ? null : H.Format.of(o);
+                }
+            }).register(new $.TypeConverter<String, H.Method>() {
+                @Override
+                public Method convert(String s) {
+                    return Method.valueOfIgnoreCase(s);
+                }
+            });
+            registered = true;
+        }
     }
 
 }

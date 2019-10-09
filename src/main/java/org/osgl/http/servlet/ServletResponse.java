@@ -1,14 +1,35 @@
 package org.osgl.http.servlet;
 
+/*-
+ * #%L
+ * OSGL HTTP
+ * %%
+ * Copyright (C) 2017 OSGL (Open Source General Library)
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import org.osgl.http.H;
 import org.osgl.util.E;
+import org.osgl.util.Output;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Locale;
+import javax.servlet.http.HttpServletResponse;
 
 public class ServletResponse extends H.Response<ServletResponse> {
     @Override
@@ -17,6 +38,7 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     private HttpServletResponse r;
+    private int statusCode = -1;
 
     public ServletResponse(HttpServletResponse resp) {
         E.NPE(resp);
@@ -60,6 +82,15 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
+    protected Output createOutput() {
+        try {
+            return Output.Adaptors.of(r.getOutputStream());
+        } catch (IOException e) {
+            throw E.ioException(e);
+        }
+    }
+
+    @Override
     protected void _setContentType(String type) {
         r.setContentType(type);
     }
@@ -86,9 +117,9 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public ServletResponse sendError(int sc, String msg) {
+    public ServletResponse sendError(int statusCode, String msg) {
         try {
-            r.sendError(sc, msg);
+            r.sendError(statusCode, msg);
         } catch (IOException e) {
             throw E.ioException(e);
         }
@@ -96,9 +127,9 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public ServletResponse sendError(int sc) {
+    public ServletResponse sendError(int statusCode) {
         try {
-            r.sendError(sc);
+            r.sendError(statusCode);
         } catch (IOException e) {
             throw E.ioException(e);
         }
@@ -122,34 +153,15 @@ public class ServletResponse extends H.Response<ServletResponse> {
     }
 
     @Override
-    public ServletResponse header(H.Header header) {
-        List<String> values = header.values();
-        int len = values.size();
-        if (len > 0) {
-            String name = header.name();
-            r.setHeader(name, values.get(0));
-            for (int i = 1; i < len; ++i) {
-                r.addHeader(name, values.get(i));
-            }
-        }
+    public ServletResponse status(int statusCode) {
+        r.setStatus(statusCode);
+        this.statusCode = statusCode;
         return this;
     }
 
     @Override
-    public ServletResponse addHeaderValues(String name, String... values) {
-        if (values.length < 1) {
-            return this;
-        }
-        for (String value : values) {
-            r.addHeader(name, value);
-        }
-        return this;
-    }
-
-    @Override
-    public ServletResponse status(int sc) {
-        r.setStatus(sc);
-        return this;
+    public int statusCode() {
+        return statusCode;
     }
 
     @Override
