@@ -4158,6 +4158,30 @@ public class H {
          */
         public abstract void addCookie(H.Cookie cookie);
 
+        /**
+         * Removes cookie with given name.
+         *
+         * @param name the name of the cookie to be removed.
+         */
+        public void removeCookie(String name) {
+            H.Cookie cookie = new H.Cookie(name);
+            removeCookie(cookie);
+        }
+
+        /**
+         * Remove a cookie.
+         *
+         * This literally will reset a MaxAge of the cookie and
+         * then add it to the response.
+         *
+         * Refer to https://stackoverflow.com/questions/890935/how-do-you-remove-a-cookie-in-a-java-servlet
+         *
+         * @param cookie the cookie to be removed.
+         */
+        public void removeCookie(H.Cookie cookie) {
+            cookie.maxAge(0);
+            addCookie(cookie);
+        }
 
         /**
          * Returns a boolean indicating whether the named response header

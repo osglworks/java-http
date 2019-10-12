@@ -31,6 +31,7 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletResponse;
 
 public class ServletResponse extends H.Response<ServletResponse> {
+
     @Override
     protected Class<ServletResponse> _impl() {
         return ServletResponse.class;
