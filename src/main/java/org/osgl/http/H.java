@@ -1621,6 +1621,10 @@ public class H {
          */
         public static final Format YAML = new Format("yaml", "text/vnd.yaml");
 
+        static {
+            predefined.put("yml", YAML);
+        }
+
         /**
          * The "text/css" content format
          */
