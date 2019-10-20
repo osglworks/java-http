@@ -35,7 +35,8 @@ public class FormatTest extends TestBase {
         for (H.Format f : predefined) {
             ordinals.add(f.ordinal());
         }
-        eq(ordinals.size(), predefined.size());
+        // there is an alias: yml, thus we need to add 1
+        eq(ordinals.size() + 1, predefined.size());
     }
 
     @Test
