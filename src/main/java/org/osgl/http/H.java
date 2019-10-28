@@ -3530,8 +3530,24 @@ public class H {
          * @return this request instance
          */
         private T resolveAcceptFormat() {
-            String accept = header(ACCEPT);
-            this.accept = Format.resolve(accept);
+            String s = paramVal("_accept");
+            if (null != s) {
+                try {
+                    this.accept = H.Format.of(s);
+                    if (null == this.accept) {
+                        this.accept = H.Format.resolve(s);
+                        if (this.accept == H.Format.UNKNOWN) {
+                            this.accept = null;
+                        }
+                    }
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            if (null == this.accept) {
+                String acceptHeader = header(ACCEPT);
+                this.accept = Format.resolve(acceptHeader);
+            }
             return (T) this;
         }
 

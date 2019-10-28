@@ -191,4 +191,10 @@ public class HttpConfig {
         cookieHttpOnly = httpOnly;
     }
 
+    private static HttpClient httpClient;
+
+    public static void setHttpClient(HttpClient client) {
+        httpClient = $.requireNotNull(client);
+    }
+
 }
