@@ -69,4 +69,9 @@ public class HTest extends TestBase {
         eq(H.Format.YAML, H.Format.resolve("application/x-yaml"));
     }
 
+    @Test
+    public void testQrCodeContentType() {
+        eq("image/png", H.Format.of("qrcode").contentType());
+    }
+
 }

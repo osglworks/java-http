@@ -1567,17 +1567,8 @@ public class H {
         }
 
         static {
-            try {
-                InputStream is = H.class.getResourceAsStream("mime-types.properties");
-                Properties types = new Properties();
-                types.load(is);
-                for (Object k : types.keySet()) {
-                    String fmt = k.toString();
-                    String contentType = types.getProperty(fmt);
-                    new Format(fmt, contentType);
-                }
-            } catch (IOException e) {
-                throw E.ioException(e);
+            for (MimeType type: MimeType.allMimeTypes()) {
+                new Format(type.fileExtension(), type.type());
             }
         }
 
@@ -1787,6 +1778,10 @@ public class H {
          */
         @Deprecated
         public static final Format unknown = UNKNOWN;
+
+        public static Format of(MimeType type) {
+            return new Format(type.fileExtension(), type.type());
+        }
 
         public static final class Ordinal {
             public static final int HTML = Format.HTML.ordinal;
