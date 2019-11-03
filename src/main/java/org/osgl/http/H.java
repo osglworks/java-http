@@ -3525,7 +3525,8 @@ public class H {
          * @return this request instance
          */
         private T resolveAcceptFormat() {
-            String s = paramVal("_accept");
+            String acceptOverrideParamName = HttpConfig.acceptOverrideParamName();
+            String s = S.blank(acceptOverrideParamName) ? null : paramVal(acceptOverrideParamName);
             if (null != s) {
                 try {
                     this.accept = H.Format.of(s);

@@ -124,6 +124,16 @@ public class HttpConfig {
         return ctx;
     }
 
+    private static String acceptOverrideParamName = "_accept";
+
+    public static String acceptOverrideParamName() {
+        return acceptOverrideParamName;
+    }
+
+    public static void acceptOverrideParamName(String paramName) {
+        acceptOverrideParamName = paramName;
+    }
+
     private static String xForwardedAllowed = "all";
 
     /**

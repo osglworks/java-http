@@ -1,6 +1,7 @@
 # OSGL HTTP Change Log
 
-1.11.0
+1.11.0 - 03/Nov/2019
+* Allow using query parameter to override `Accept` header #33
 * Add `removeCookie` methods into `H.Response` class #32
 * update osgl-tool to 1.21.0
 * Support YAML Format #31
