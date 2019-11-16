@@ -1299,6 +1299,57 @@ public class H {
         }
 
         /**
+         * Check if this format has the same content type with specified format.
+         * @param fmt the format to be tested against this format
+         * @return `true` if the fmt has the same content type with this format.
+         */
+        public boolean isSameType(H.Format fmt) {
+            return contentType == fmt.contentType;
+        }
+
+        /**
+         * Check if this format has the same content type with the content type
+         * of any format in the specified list.
+         *
+         * @param formats an array of formats to test this format.
+         * @return `true` if this format has same content type with any any of the format specified.
+         */
+        public boolean isSameTypeOfAny(Format ... formats) {
+            for (Format fmt : formats) {
+                if (isSameType(fmt)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Check if this format has the same content type with the type of the
+         * {@link MimeType} specified.
+         * @param type the mime type to be tested
+         * @return `true` if the mime type has the same type with the content type of this format.
+         */
+        public boolean isSameType(MimeType type) {
+            return contentType == type.type();
+        }
+
+        /**
+         * Check if this format has the same content type with the content type
+         * of any format in the specified list.
+         *
+         * @param formats an array of formats to test this format.
+         * @return `true` if this format has same content type with any any of the format specified.
+         */
+        public boolean isSameTypeOfAny(MimeType ... types) {
+            for (MimeType type : types) {
+                if (isSameType(type)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
          * Deprecated. Please use {@link #contentType()}
          * @return the content type string of the format
          */
