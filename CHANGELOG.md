@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.11.1
+* H.Format - use String.intern() to set name and contentType
+
 1.11.0 - 03/Nov/2019
 * Allow using query parameter to override `Accept` header #33
 * Add `removeCookie` methods into `H.Response` class #32

@@ -1271,8 +1271,8 @@ public class H {
         }
 
         private Format(String name, String contentType, boolean predefined) {
-            this.name = name.toLowerCase();
-            this.contentType = contentType;
+            this.name = name.toLowerCase().intern();
+            this.contentType = contentType.intern();
             if (predefined) {
                 Format.predefined.put(name, this);
                 this.ordinal = ordinal(name);
