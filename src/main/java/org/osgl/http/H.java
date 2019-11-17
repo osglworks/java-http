@@ -1303,7 +1303,7 @@ public class H {
          * @param fmt the format to be tested against this format
          * @return `true` if the fmt has the same content type with this format.
          */
-        public boolean isSameType(H.Format fmt) {
+        public boolean isSameTypeWith(H.Format fmt) {
             return contentType == fmt.contentType;
         }
 
@@ -1314,9 +1314,9 @@ public class H {
          * @param formats an array of formats to test this format.
          * @return `true` if this format has same content type with any any of the format specified.
          */
-        public boolean isSameTypeOfAny(Format ... formats) {
+        public boolean isSameTypeWithAny(Format ... formats) {
             for (Format fmt : formats) {
-                if (isSameType(fmt)) {
+                if (isSameTypeWith(fmt)) {
                     return true;
                 }
             }
@@ -1329,7 +1329,7 @@ public class H {
          * @param type the mime type to be tested
          * @return `true` if the mime type has the same type with the content type of this format.
          */
-        public boolean isSameType(MimeType type) {
+        public boolean isSameTypeWith(MimeType type) {
             return contentType == type.type();
         }
 
@@ -1337,12 +1337,12 @@ public class H {
          * Check if this format has the same content type with the content type
          * of any format in the specified list.
          *
-         * @param formats an array of formats to test this format.
+         * @param types an array of mime types to test this format.
          * @return `true` if this format has same content type with any any of the format specified.
          */
-        public boolean isSameTypeOfAny(MimeType ... types) {
+        public boolean isSameTypeWithAny(MimeType ... types) {
             for (MimeType type : types) {
-                if (isSameType(type)) {
+                if (isSameTypeWith(type)) {
                     return true;
                 }
             }
@@ -1813,10 +1813,10 @@ public class H {
         /**
          * The "unknown" content format. Use default content type: "text/html"
          */
-        public static final Format UNKNOWN = new Format("unknown", "text/html") {
+        public static final Format UNKNOWN = new Format("unknown", "osgl/unknown") {
             @Override
             public String contentType() {
-                return "text/html";
+                return "osgl/unknown";
             }
 
             @Override
