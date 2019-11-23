@@ -1,8 +1,9 @@
 # OSGL HTTP Change Log
 
-1.11.1
-* H.Format - use String.intern() to set name and contentType
-* H.Format - add isSameType(H.Format) method
+1.12.0 - 23/Nov/2019
+* H.Format enhancement #34
+    - H.Format - use String.intern() to set name and contentType
+    - H.Format - add isSameType(H.Format) method
 
 1.11.0 - 03/Nov/2019
 * Allow using query parameter to override `Accept` header #33
