@@ -23,7 +23,7 @@
 
     <artifactId>osgl-http</artifactId>
     <packaging>jar</packaging>
-    <version>1.12.1-SNAPSHOT</version>
+    <version>1.13.0-SNAPSHOT</version>
 
     <name>OSGL HTTP</name>
     <description>Utilities for HTTP</description>
@@ -42,7 +42,7 @@
     </scm>
 
     <properties>
-        <osgl-tool.version>1.22.1</osgl-tool.version>
+        <osgl-tool.version>1.22.2-SNAPSHOT</osgl-tool.version>
         <osgl-cache.version>1.8.0</osgl-cache.version>
         <osgl-logging.version>1.5.0</osgl-logging.version>
         <servlet.version>2.5</servlet.version>

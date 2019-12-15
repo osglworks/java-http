@@ -26,6 +26,7 @@ import org.osgl.$;
 import org.osgl.cache.CacheService;
 import org.osgl.exception.NotAppliedException;
 import org.osgl.exception.UnexpectedIOException;
+import org.osgl.http.util.ContentTypeResolver;
 import org.osgl.http.util.DefaultCurrentStateStore;
 import org.osgl.http.util.Path;
 import org.osgl.logging.LogManager;
@@ -1527,99 +1528,12 @@ public class H {
         }
 
         private static Format resolve_(Format def, String contentType) {
-            Format fmt = def;
-            if (S.blank(contentType) || "*/*".equals(contentType)) {
-                fmt = UNKNOWN;
-            } else if (contentType.contains("application/xhtml") || contentType.contains("text/html")) {
-                fmt = HTML;
-            } else if (contentType.contains("text/css")) {
-                fmt = CSS;
-            } else if (contentType.contains("application/json") || contentType.contains("text/javascript")) {
-                fmt = JSON;
-            } else if (contentType.contains("application/x-www-form-urlencoded")) {
-                fmt = FORM_URL_ENCODED;
-            } else if (contentType.contains("multipart/form-data") || contentType.contains("multipart/mixed")) {
-                fmt = FORM_MULTIPART_DATA;
-            } else if (contentType.contains("image")) {
-                if (contentType.contains("png")) {
-                    fmt = PNG;
-                } else if (contentType.contains("jpg") || contentType.contains("jpeg")) {
-                    fmt = JPG;
-                } else if (contentType.contains("gif")) {
-                    fmt = GIF;
-                } else if (contentType.contains("svg")) {
-                    fmt = SVG;
-                } else if (contentType.contains("ico")) {
-                    fmt = ICO;
-                } else if (contentType.contains("bmp")) {
-                    fmt = BMP;
-                } else {
-                    // just specify an arbitrary sub type
-                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
-                    fmt = PNG;
-                }
-            } else if (contentType.contains("application/xml") || contentType.contains("text/xml")) {
-                fmt = XML;
-            } else if (contentType.contains("text/plain")) {
-                fmt = TXT;
-            } else if (contentType.contains("csv") || contentType.contains("comma-separated-values")) {
-                fmt = CSV;
-            } else if (contentType.contains("ms-excel")) {
-                fmt = XLS;
-            } else if (contentType.contains("spreadsheetml")) {
-                fmt = XLSX;
-            } else if (contentType.contains("pdf")) {
-                fmt = PDF;
-            } else if (contentType.contains("msword")) {
-                fmt = DOC;
-            } else if (contentType.contains("wordprocessingml")) {
-                fmt = DOCX;
-            } else if (contentType.contains("rtf")) {
-                fmt = RTF;
-            } else if (contentType.contains("yaml")) {
-                fmt = YAML;
-            } else if (contentType.contains("audio")) {
-                if (contentType.contains("mpeg3")) {
-                    fmt = MP3;
-                } else if (contentType.contains("mp")) {
-                    fmt = MPA;
-                } else if (contentType.contains("mod")) {
-                    fmt = MOD;
-                } else if (contentType.contains("wav")) {
-                    fmt = WAV;
-                } else if (contentType.contains("ogg")) {
-                    fmt = OGA;
-                } else {
-                    // just specify an arbitrary sub type
-                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
-                    fmt = WAV;
-                }
-            } else if (contentType.contains("video")) {
-                if (contentType.contains("mp4")) {
-                    fmt = MP4;
-                } else if (contentType.contains("webm")) {
-                    fmt = WEBM;
-                } else if (contentType.contains("ogg")) {
-                    fmt = OGV;
-                } else if (contentType.contains("mov")) {
-                    fmt = MOV;
-                } else if (contentType.contains("mpeg")) {
-                    fmt = MPG;
-                } else if (contentType.contains("x-flv")) {
-                    fmt = FLV;
-                } else {
-                    // just specify an arbitrary sub type
-                    // see https://superuser.com/questions/979135/is-there-a-generic-mime-type-for-all-image-files
-                    fmt = MP4;
-                }
-            }
-
-            return fmt;
+            return ContentTypeResolver.resolve(def, contentType);
         }
 
         static {
             for (MimeType type: MimeType.allMimeTypes()) {
-                new Format(type.fileExtension(), type.type());
+                new Format(type.name(), type.type());
             }
         }
 
@@ -1786,7 +1700,6 @@ public class H {
         public static final Format WAV = valueOf("wav");
         public static final Format MOD = valueOf("mod");
         public static final Format OGA = valueOf("oga");
-
 
         /**
          * The "application/x-www-form-urlencoded" content format
@@ -3594,6 +3507,12 @@ public class H {
             if (null == this.accept) {
                 String acceptHeader = header(ACCEPT);
                 this.accept = Format.resolve(acceptHeader);
+                if (this.accept == Format.JPG && acceptHeader.length() > 50) {
+                    // let's handle IE issue: refer https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation/List_of_default_Accept_values
+                    if (acceptHeader.contains("application/x-ms-application")) {
+                        this.accept = Format.HTML;
+                    }
+                }
             }
             return (T) this;
         }
