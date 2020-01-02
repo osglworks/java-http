@@ -1,9 +1,6 @@
 # OSGL HTTP Change Log
 
-1.13.0
-* Improve content negotiation logic #35
-
-1.13.0 
+1.13.0 - 02/Jan/2020 
 * Improve content negotiation logic #35
 
 1.12.0 - 23/Nov/2019

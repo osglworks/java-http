@@ -21,8 +21,9 @@ package org.osgl.http.util.content_resolver_benchmark;
  */
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
+import com.carrotsearch.junitbenchmarks.Clock;
 
-@BenchmarkOptions(warmupRounds = 100 * 100 * 10, benchmarkRounds = 100 * 100 * 100)
+@BenchmarkOptions(warmupRounds = 100 * 100 * 10, benchmarkRounds = 100 * 100 * 100, clock = Clock.CPU_TIME)
 public class ApplicationJsonBenchmark extends ContentTypeResolverBenchmarkBase {
     public ApplicationJsonBenchmark() {
         super("application/json");

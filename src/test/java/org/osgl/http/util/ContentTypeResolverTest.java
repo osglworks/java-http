@@ -53,6 +53,7 @@ public class ContentTypeResolverTest extends TestBase {
         t(JSON, "application/json");
         t(JSON, "application/json;q=0.3");
         t(JSON, "application/json,application/xml;q=0.1");
+        t(JSON, "application/json,text/html;q=0.9,application/xhtml+xml;q=0.9,application/xml;q=0.8,*/*;q=0.7");
 
         t(JAVASCRIPT, "application/javascript");
         t(JAVASCRIPT, "application/javascript;q=0.3");
