@@ -3063,6 +3063,8 @@ public class H {
 
         private Format accept;
 
+        private Format rawAccept;
+
         private Format contentType;
 
         private String ip;
@@ -3156,7 +3158,10 @@ public class H {
         public abstract Iterable<String> headerNames();
 
         /**
-         * Return the request {@link org.osgl.http.H.Format accept}
+         * Return the request {@link org.osgl.http.H.Format accept}.
+         *
+         * Note the accept might be overwritten by {@link HttpConfig#acceptOverrideParamName()}
+         * request query parameter
          *
          * @return the request accept
          */
@@ -3165,6 +3170,17 @@ public class H {
                 resolveAcceptFormat();
             }
             return accept;
+        }
+
+        /**
+         * Returns the format resolved from HTTP Accept header.
+         * @return the raw accept
+         */
+        public Format rawAccept() {
+            if (null == rawAccept) {
+                resolveRawAccept();
+            }
+            return rawAccept;
         }
 
         /**
@@ -3505,16 +3521,23 @@ public class H {
                 }
             }
             if (null == this.accept) {
+                resolveRawAccept();
+                this.accept = this.rawAccept;
+            }
+            return (T) this;
+        }
+
+        private void resolveRawAccept() {
+            if (null == this.rawAccept) {
                 String acceptHeader = header(ACCEPT);
-                this.accept = Format.resolve(acceptHeader);
-                if (this.accept == Format.JPG && acceptHeader.length() > 50) {
+                this.rawAccept = Format.resolve(acceptHeader);
+                if (this.rawAccept == Format.JPG && acceptHeader.length() > 50) {
                     // let's handle IE issue: refer https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation/List_of_default_Accept_values
                     if (acceptHeader.contains("application/x-ms-application")) {
-                        this.accept = Format.HTML;
+                        this.rawAccept = Format.HTML;
                     }
                 }
             }
-            return (T) this;
         }
 
         /**
