@@ -1,5 +1,9 @@
 # OSGL HTTP Change Log
 
+1.13.1 - 02/Mar/2020
+* Update osgl-tool to 1.24.0
+* Add `H.Request.rawAccept()` method #36
+
 1.13.0 - 02/Jan/2020 
 * Improve content negotiation logic #35
 
