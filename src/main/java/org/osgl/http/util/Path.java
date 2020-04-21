@@ -163,10 +163,10 @@ public enum Path {
      * @return the full url of the path
      */
     public static String fullUrl(String path, H.Request req) {
-        if (null == req) return fullUrl(path, false);
+        if (null == req) return fullUrl(path);
 
         if (isFullUrl(path)) return path;
-        boolean secure = req.scheme().equals("https");
+        boolean secure = req.secure();
         StringBuilder sb = S.builder(req.scheme()).append("://");
         sb.append(req.domain());
         int reqPort = req.port();

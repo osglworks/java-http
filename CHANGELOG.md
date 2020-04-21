@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.13.2
+* `H` shall not keep session cache instance as a private static variable #37
+
 1.13.1 - 02/Mar/2020
 * Update osgl-tool to 1.24.0
 * Add `H.Request.rawAccept()` method #36

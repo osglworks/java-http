@@ -2521,16 +2521,8 @@ public class H {
             return S.builder(id()).append(key).toString();
         }
 
-        private static volatile CacheService cs;
-
         private static CacheService cs() {
-            if (null != cs) return cs;
-            synchronized (H.class) {
-                if (null == cs) {
-                    cs = HttpConfig.sessionCache();
-                }
-                return cs;
-            }
+            return HttpConfig.sessionCache();
         }
 
         /**
