@@ -2,6 +2,7 @@
 
 1.13.2
 * `H` shall not keep session cache instance as a private static variable #37
+* Update to osgl-tool-1.25.0
 
 1.13.1 - 02/Mar/2020
 * Update osgl-tool to 1.24.0
