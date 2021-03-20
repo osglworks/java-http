@@ -1,5 +1,9 @@
 # OSGL HTTP Change Log
 
+1.13.4
+
+* Add `_UNKNOWN` to `H.MediatType` enum for internal usage.
+
 1.13.3
 * Missing image types in H.MediaType enum definition #38
 

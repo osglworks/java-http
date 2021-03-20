@@ -1781,6 +1781,11 @@ public class H {
     }
 
     public enum MediaType {
+        /**
+         * `_UNKNOWN` is reserved for internal use. please
+         * do not use this one in application.
+         */
+        _UNKNOWN,
         AVI,
         BMP,
         CSS, CSV,
