@@ -1781,7 +1781,23 @@ public class H {
     }
 
     public enum MediaType {
-        CSS, CSV, DOC, DOCX, HTML, JAVASCRIPT, JSON, PDF, TXT, XLS, XLSX, XML, YAML;
+        AVI,
+        BMP,
+        CSS, CSV,
+        DOC, DOCX,
+        FLV,
+        GIF,
+        HTML,
+        ICO,
+        JAVASCRIPT, JPG, JSON,
+        MP3, MP4, MPA, MPG, MOD, MOV,
+        OGA, OGV,
+        PDF, PNG,
+        SVG,
+        TIF, TXT,
+        WAV, WEBM,
+        XLS, XLSX, XML,
+        YAML;
         private Format fmt;
         private MediaType() {
             fmt = Format.valueOf(name());

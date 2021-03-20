@@ -1,5 +1,8 @@
 # OSGL HTTP Change Log
 
+1.13.3
+* Missing image types in H.MediaType enum definition #38
+
 1.13.2
 * `H` shall not keep session cache instance as a private static variable #37
 * Update to osgl-tool-1.25.0
